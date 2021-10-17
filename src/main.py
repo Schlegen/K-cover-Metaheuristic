@@ -1,9 +1,18 @@
-from utils.build_grid import extract_and_build
-from utils.display_grid import display
+from instance_class import Instance
+from solution_class import Solution
 
-grid_size = (10, 10)
+# grid_size = (10, 10)
+# data_folder = "data/"
+# data_file = data_folder + "grille1010_2.dat"
+
+# instance = Instance.from_disk(data_file)
+# instance.display()
+
+grid_size = (4, 4)
 data_folder = "data/"
-data_file = data_folder + "grille1010_2.dat"
+data_file = data_folder + "grille44_toy.dat"
 
-grid = extract_and_build(data_file, grid_size)
-display(grid)
+instance = Instance.from_disk(data_file, size=grid_size, Rcom=2)
+solution = Solution([(1,0), (2,0), (3,0), (3,2), (3,3), (0,1), (0,2) ,(1,2), (1,3)])
+print(solution.is_valid(instance))
+solution.display(instance)

@@ -4,7 +4,6 @@ import numpy as np
 def extract_points(data_file):
     content = [i.strip().split() for i in open(data_file).readlines()]
     points = [(int(x[2][1:-1]), int(x[3][:-1])) for x in content[2:]]
-
     return points
 
 
