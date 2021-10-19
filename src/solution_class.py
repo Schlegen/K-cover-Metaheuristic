@@ -5,6 +5,8 @@ import math as mh
 import numpy as np
 import matplotlib.pyplot as plt
 
+import networkx as nx
+from utils.math_utils import dist
 
 class Solution:
 
@@ -112,3 +114,78 @@ class Solution:
             else:
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
+
+class TrivialSolution(Solution):
+
+    def __init__(self, instance):
+        # We consider the trivial solution : all targets get a captor
+        self.list_captors = deepcopy(instance.targets)
+        n = len(instance.targets)
+        n_captors_deleted = 0
+        for i in range(n):
+            last_captors_valid = deepcopy(self.list_captors)
+            k = i - n_captors_deleted
+
+            # We delete the i_th element of the original list
+            self.list_captors.pop(k)
+            # We check if it generates a valid solution
+            solution_is_valid = self.is_valid(instance)
+            if solution_is_valid:
+                n_captors_deleted += 1
+            else:
+                # If it is not, we cancel the deletion and continue
+                self.list_captors = deepcopy(last_captors_valid)
+
+class MinCostFlowMethod(Solution):
+    def __init__(self, instance):
+
+        flow_value = instance.k * instance.n_points_to_cover
+        #print("flow value", flow_value)
+        G = nx.DiGraph()
+
+        G.add_node((0,0,0), demand=-flow_value)
+        G.add_nodes_from([(1, e[0], e[1]) for e in instance.points_to_cover])
+        G.add_node((1, 0, 0)) # on peut poser un capteur en 0
+        G.add_nodes_from([(2, e[0], e[1]) for e in instance.points_to_cover])
+        G.add_node((3, 0, 0), demand=flow_value)
+
+        G.add_edges_from([((0, 0, 0), (1, v[0], v[1])) for v in instance.points_to_cover if dist((0,0), v) <= instance.Rcom])
+        G.add_edge((0, 0, 0), (1, 0, 0))
+
+        E_com = instance.neighbours(instance.Rcom, take_origin=True)
+        G.add_edges_from([((1, u[0], u[1]), (1, v[0], v[1])) for u, v in E_com], weight=1)
+
+        E_capt = instance.neighbours(instance.Rcapt, take_origin=False)
+        G.add_edges_from([((1, u[0], u[1]), (2, v[0], v[1])) for u, v in E_capt], capacity=1)
+        G.add_edges_from([((1, u[0], u[1]), (2, u[0], u[1])) for u in instance.points_to_cover], capacity=1)
+
+
+        G.add_edges_from([((2, v[0], v[1]), (3, 0, 0)) for v in instance.points_to_cover], capacity=instance.k)
+
+        self.graph = G
+        self.list_captors = []
+
+    def compute_flow(self):
+        self.flow = nx.algorithms.flow.min_cost_flow(self.graph)
+
+    def build_solution(self):
+        self.list_captors = []
+        n_captors = 0
+        for key, value in self.flow[(0, 0, 0)].items():
+            if value >= 1:
+                self.list_captors.append((key[1], key[2]))
+                n_captors += 1
+    
+        n_treated_captors = 0
+        while n_treated_captors < n_captors:
+            #time.sleep(0.1)
+            captor = self.list_captors[n_treated_captors]
+            n_treated_captors += 1
+            
+            for key, value in self.flow[(1, captor[0], captor[1])].items():
+                #print(captor, "-->", key, value)
+                if key[0] == 1 and value >= 1:
+                    self.list_captors.append((key[1], key[2]))
+                    n_captors += 1
+            
+        return 0

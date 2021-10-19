@@ -23,3 +23,12 @@ def init_grid(points_to_delete, size):
     grid = generate_grid(size)
     grid = delete_captors(grid, points_to_delete)
     return grid
+
+def coordinates_to_cover(grid):
+    list_coordinates = []
+    n, m = grid.shape
+    for i in range(n):
+        for j in range(m):
+            if grid[i,j] == 1:
+                list_coordinates.append((i,j))
+    return list_coordinates
