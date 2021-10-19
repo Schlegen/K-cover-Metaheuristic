@@ -19,8 +19,7 @@ def delete_captors(grid, coordinates):
     return grid
 
 
-def extract_and_build(data_file, size):
-    captors_to_delete = extract_points(data_file)
+def init_grid(points_to_delete, size):
     grid = generate_grid(size)
-    grid = delete_captors(grid, captors_to_delete)
+    grid = delete_captors(grid, points_to_delete)
     return grid

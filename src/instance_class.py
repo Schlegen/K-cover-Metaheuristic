@@ -1,36 +1,47 @@
-from utils.build_grid import extract_points, generate_grid, delete_captors
+from utils.build_grid import extract_points, init_grid
 import matplotlib.pyplot as plt
 import numpy as np
 
-class Instance:
 
-    def __init__(self, grid, n_deleted_points, Rcapt=1, Rcom=1):
+class Instance:
+    def __init__(self, deleted_points, size, Rcapt=1, Rcom=1):
         """constructeur de la classe Instance
 
         Args:
-            grid (objet de dimension_grille): tableau comprennant des 1 pour les sommets à capter, un 2 pour le dépot et un 0 pour les sommets n'appartenant pas à la grille 
-            Rcapt (float, optionnal): rayon de captage. Defaults to None.
-            Rcom (float, optionnal): rayon de communication. Defaults to None.
+            Rcapt (float, optionnal): rayon de captage. Defaults to 1.
+            Rcom (float, optionnal): rayon de communication. Defaults to 1.
         """
-        self.grid = grid
-        self.n_deleted_points = n_deleted_points
-        self.x, self.y = grid.shape
+
+        self.source = (0, 0)
+        self.n = size[0]
+        self.m = size[1]
+
+        self.deleted_points = deleted_points
+        self.n_deleted_points = len(deleted_points)
+
+        self.targets = [(i, j) for i in range(self.n) for j in range(self.m) if (i, j) not in deleted_points
+                        and (i, j) != self.source]
+        self.n_targets = len(self.targets)
+
+        self.grid = init_grid(deleted_points, size)
+
         self.Rcapt = Rcapt
         self.Rcom = Rcom
         
     @classmethod
-    def from_disk(cls, data_file, size=(10,10), Rcapt=1, Rcom=1):
+    def from_disk(cls, data_file, size=(10, 10), Rcapt=1, Rcom=1):
         captors_to_delete = extract_points(data_file)
-        grid = generate_grid(size)
-        grid = delete_captors(grid, captors_to_delete)
-        return cls(grid, len(captors_to_delete), Rcapt, Rcom)
+        return cls(captors_to_delete, size, Rcapt, Rcom)
+
+    def draw_data(self):
+        for target in self.targets:
+            plt.scatter(target[0], target[1], marker="+", color='blue')
+        plt.scatter(self.source[0], self.source[1], marker="o", color='red')
 
     def display(self):
-        for i in range(self.x):
-            for j in range(self.y):
-                if self.grid[i, j] == 1:
-                    plt.scatter(i, j, marker="+", color='blue')
-                elif self.grid[i, j] == 2:
-                    plt.scatter(i, j, marker="o", color='red')
+        plt.figure("Instance")
+        self.draw_data()
         plt.show()
+
+
 
