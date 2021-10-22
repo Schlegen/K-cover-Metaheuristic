@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from utils.math_utils import dist
 
+
 class Solution:
 
     def __init__(self, list_captors):
@@ -135,6 +136,7 @@ class TrivialSolution(Solution):
             else:
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
+
 
 class MinCostFlowMethod(Solution):
     def __init__(self, instance):

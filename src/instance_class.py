@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 
+
 class Instance:
     def __init__(self, deleted_points, size, Rcapt=1, Rcom=1, k=1):
         """constructeur de la classe Instance
@@ -33,7 +34,7 @@ class Instance:
 
         self.Rcapt = Rcapt
         self.Rcom = Rcom
-        
+
     @classmethod
     def from_disk(cls, data_file, size=(10, 10), Rcapt=1, Rcom=1, k=1):
         captors_to_delete = extract_points(data_file)
@@ -62,10 +63,10 @@ class Instance:
         list_neighbours = []
 
         if take_origin:
-            v=(0, 0)
+            v = (0, 0)
             for i in range(self.n_points_to_cover):
                 u = self.points_to_cover[i]
-                if dist(u,v) <= R:
+                if dist(u, v) <= R:
                     list_neighbours.append((u, v))
                     list_neighbours.append((v, u))
 
@@ -73,10 +74,8 @@ class Instance:
             u = self.points_to_cover[i]
             for j in range(i):
                 v = self.points_to_cover[j]
-                if dist(u,v) <= R:
+                if dist(u, v) <= R:
                     list_neighbours.append((u, v))
                     list_neighbours.append((v, u))
 
         return list_neighbours
-
-
