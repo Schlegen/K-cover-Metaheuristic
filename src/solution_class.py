@@ -97,7 +97,66 @@ class Solution:
             plt.scatter(captor[0], captor[1], marker="D", color='orange')
         plt.show()
 
-    def generate_trivial_solution(self, instance):
+    def disk_graph_captors(self, instance):
+        """
+            Generates the disk graph of captors, with radius = Rcom
+        """
+        G = nx.Graph()
+        points_to_communicate_with = self.list_captors + [(0, 0)]
+        G.add_nodes_from([(e[0], e[1]) for e in points_to_communicate_with])
+
+        E_com = instance.neighbours_dict(instance.Rcom)
+        for u in points_to_communicate_with:
+            for v in E_com[u]:
+                if v in points_to_communicate_with:
+                    G.add_edge((u[0], u[1]), (v[0], v[1]))
+            # G.add_edges_from([((u[0], u[1]), (v[0], v[1])) for v in E_com[u]])
+        self.disk_graph_com = G
+
+    def disk_graph_targets(self, instance):
+        """
+            Generates the disk graph of targets, with radius = Rcapt
+        """
+        G = nx.Graph()
+        points_to_capt = self.list_captors
+        G.add_nodes_from([(e[0], e[1]) for e in points_to_capt])
+
+        E_capt = instance.neighbours_dict(instance.Rcapt)
+        for u in points_to_capt:
+            G.add_edges_from([((u[0], u[1]), (v[0], v[1])) for v in E_capt[u]])
+        self.disk_graph_capt = G
+
+    def find_connected_components(self, instance):
+        self.disk_graph_captors(instance)
+        connected_components = nx.connected_components(self.disk_graph_com)
+        print("Captors")
+        print(self.list_captors)
+        print("Connected components")
+        for c in connected_components:
+            print([e for e in c])
+        print("---")
+        return connected_components
+
+    def reparation_heuristic(self, instance):
+        """
+            Implementation d'une heuristique de reparation
+        :param instance:
+        :return:
+        """
+        # Si des capteurs sont pas captés
+        # TODO
+
+        # Si la solution non connexe
+        # On parcourt les composantes connexes des capteurs (sauf celle qui contient (0,0) ), et on les rend connexes
+        # à celle qui contient (0, 0)
+        
+
+        return
+
+
+class TrivialSolution(Solution):
+
+    def __init__(self, instance):
         # We consider the trivial solution : all targets get a captor
         self.list_captors = deepcopy(instance.targets)
         n = len(instance.targets)
@@ -116,11 +175,13 @@ class Solution:
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
 
-class TrivialSolution(Solution):
+
+class TrivialSolutionRandomized(Solution):
 
     def __init__(self, instance):
         # We consider the trivial solution : all targets get a captor
         self.list_captors = deepcopy(instance.targets)
+        np.random.shuffle(self.list_captors)  # shuffle the list of captors
         n = len(instance.targets)
         n_captors_deleted = 0
         for i in range(n):

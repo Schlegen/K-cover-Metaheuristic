@@ -29,15 +29,12 @@ class Instance:
 
         self.grid = init_grid(deleted_points, size)
 
-        self.points_to_cover = coordinates_to_cover(self.grid)
-        self.n_points_to_cover = len(coordinates_to_cover(self.grid))
-
         self.Rcapt = Rcapt
         self.Rcom = Rcom
 
     @classmethod
-    def from_disk(cls, data_file, size=(10, 10), Rcapt=1, Rcom=1, k=1):
-        captors_to_delete = extract_points(data_file)
+    def from_disk(cls, data_file, Rcapt=1, Rcom=1, k=1):
+        captors_to_delete, size = extract_points(data_file)
         return cls(captors_to_delete, size, Rcapt, Rcom, k)
 
     def draw_data(self):
@@ -64,18 +61,46 @@ class Instance:
 
         if take_origin:
             v = (0, 0)
-            for i in range(self.n_points_to_cover):
-                u = self.points_to_cover[i]
+            for i in range(self.n_targets):
+                u = self.targets[i]
                 if dist(u, v) <= R:
                     list_neighbours.append((u, v))
                     list_neighbours.append((v, u))
 
-        for i in range(self.n_points_to_cover):
-            u = self.points_to_cover[i]
+        for i in range(self.n_targets):
+            u = self.targets[i]
             for j in range(i):
-                v = self.points_to_cover[j]
+                v = self.targets[j]
                 if dist(u, v) <= R:
                     list_neighbours.append((u, v))
                     list_neighbours.append((v, u))
+
+        return list_neighbours
+
+    def neighbours_dict(self, R):
+        """Renvoie le dictionnaire des voisins
+
+        Args:
+            R (float): rayon
+            take_origin (bool): indique si l'on doit prendre le point (0, 0, 0 dans la calcul)
+
+        Returns:
+            liste de tuples de tuples: chaque element est un couple de points de la liste
+        """
+        list_neighbours = dict()
+
+        targets_with_origin = self.targets + [(0, 0)]
+
+        for i in range(self.n_targets + 1):
+            u = targets_with_origin[i]
+            if u not in list_neighbours:
+                list_neighbours[u] = list()
+            for j in range(i):
+                v = targets_with_origin[j]
+                if v not in list_neighbours:
+                    list_neighbours[v] = list()
+                if dist(u, v) <= R:
+                    list_neighbours[u].append(v)
+                    list_neighbours[v].append(u)
 
         return list_neighbours

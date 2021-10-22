@@ -2,9 +2,11 @@ import numpy as np
 
 
 def extract_points(data_file):
-    content = [i.strip().split() for i in open(data_file).readlines()]
-    points = [(int(x[2][1:-1]), int(x[3][:-1])) for x in content[2:]]
-    return points
+    content = [i.strip() for i in open(data_file).readlines()]
+    size = int(np.sqrt(int(content[0].split(":=")[1].split(";")[0])))
+    points = [(int(x.split('(')[1].split(",")[0]),
+               int(x.split(',')[1].split(")")[0])) for x in content[3:]]
+    return points, (size, size)
 
 
 def generate_grid(size):
@@ -24,11 +26,12 @@ def init_grid(points_to_delete, size):
     grid = delete_captors(grid, points_to_delete)
     return grid
 
+
 def coordinates_to_cover(grid):
     list_coordinates = []
     n, m = grid.shape
     for i in range(n):
         for j in range(m):
-            if grid[i,j] == 1:
-                list_coordinates.append((i,j))
+            if grid[i, j] == 1:
+                list_coordinates.append((i, j))
     return list_coordinates
