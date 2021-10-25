@@ -82,7 +82,7 @@ class Instance:
 
         Args:
             R (float): rayon
-            take_origin (bool): indique si l'on doit prendre le point (0, 0, 0 dans la calcul)
+            take_origin (bool): indique si l'on doit prendre le point (0, 0, 0 dans le calcul)
 
         Returns:
             liste de tuples de tuples: chaque element est un couple de points de la liste

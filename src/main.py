@@ -1,10 +1,19 @@
 from instance_class import Instance
 from solution_class import Solution, TrivialSolution, MinCostFlowMethod, TrivialSolutionRandomized
+from bounds import MilpApproach
 
-data_folder = "data/"
-data_file = data_folder + "grille1010_1.dat"
 
-instance = Instance.from_disk(data_file, Rcom=2)
+if __name__ == "__main__":
+    data_folder = "data/"
+    data_file = data_folder + "grille1010_1.dat"#grille1010_1.dat"
+
+    instance = Instance.from_disk(data_file, Rcom=1)
+
+    milp = MilpApproach(instance)
+    milp.relaxation_value()
+    print("relaxation : ", milp.relaxation_value)
+
+#    print(milp.captors)
 #instance.display()
 
 # grid_size = (4, 4)
@@ -15,12 +24,12 @@ instance = Instance.from_disk(data_file, Rcom=2)
 # instance.display()
 
 # solution = Solution([(1, 0), (2, 0), (3, 0), (3, 2), (3, 3), (0, 1), (0, 2), (1, 2), (1, 3)])
-solution1 = Solution([(1, 0), (2, 0), (3, 0), (3, 2), (3, 3), (0, 1), (0, 2), (1, 2), (1, 3), (6, 6), (6, 7)])
-solution1 = TrivialSolution(instance)
-# solution1.find_connected_components(instance)
-print(solution1.is_valid(instance))
-print("Trivial Solution value : ", solution1.value())
-solution1.display(instance)
+# solution1 = Solution([(1, 0), (2, 0), (3, 0), (3, 2), (3, 3), (0, 1), (0, 2), (1, 2), (1, 3), (6, 6), (6, 7)])
+# solution1 = TrivialSolution(instance)
+# # solution1.find_connected_components(instance)
+# print(solution1.is_valid(instance))
+# print("Trivial Solution value : ", solution1.value())
+# solution1.display(instance)
 
 # solution3 = TrivialSolutionRandomized(instance)
 # print(solution3.is_valid(instance))
