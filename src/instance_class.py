@@ -32,6 +32,9 @@ class Instance:
         self.Rcapt = Rcapt
         self.Rcom = Rcom
 
+        self.neighbours_Rcapt = self.neighbours_dict(Rcapt)
+        self.neighbours_Rcom = self.neighbours_dict(Rcom)
+
     @classmethod
     def from_disk(cls, data_file, Rcapt=1, Rcom=1, k=1):
         captors_to_delete, size = extract_points(data_file)
