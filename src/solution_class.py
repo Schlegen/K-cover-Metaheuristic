@@ -17,6 +17,7 @@ class Solution:
         Args:
             list_captors (list of tuples): liste des coordonnées des capteurs dans la solution
         """
+        self.valid = False
         self.list_captors = list_captors
         self.captors = None
 
@@ -77,12 +78,13 @@ class Solution:
                             captors_to_treat.append((captor[0] + i, captor[1] + j))
                             n_covered_points += 1
                             void_grid[captor[0] + i, captor[1] + j] = 0
-        return n_covered_points == instance.n * instance.m - instance.n_deleted_points
+        self.valid = n_covered_points == instance.n * instance.m - instance.n_deleted_points
+        return self.valid
 
     def value(self):
         return len(self.list_captors)
 
-    def display(self, instance):
+    def draw_main_info(self, instance):
         # TODO : A enrichir pour afficher les liens de communication et de captation
 
         plt.figure("Solution")
@@ -91,10 +93,21 @@ class Solution:
                 if instance.grid[i, j] == 1:
                     plt.scatter(i, j, marker="+", color='blue')
                 elif instance.grid[i, j] == 2:
-                    plt.scatter(i, j, marker="o", color='red')
+                    plt.scatter(i, j, marker="o", color='black')
 
         for captor in self.list_captors:
             plt.scatter(captor[0], captor[1], marker="D", color='orange')
+        plt.show()
+
+    def draw_uncovered_targets(self, targets):
+        for target in targets:
+            plt.scatter(target[0], target[1], marker="+", color='red')
+
+    def display(self, instance, with_uncovered=False):
+        plt.figure("Solution")
+        self.draw_main_info(instance)
+        if not self.valid and with_uncovered:
+            self.draw_uncovered_targets(instance)
         plt.show()
 
     def disk_graph_captors(self, instance):
@@ -117,41 +130,63 @@ class Solution:
         """
             Generates the disk graph of targets, with radius = Rcapt
         """
-        G = nx.Graph()
-        points_to_capt = self.list_captors
-        G.add_nodes_from([(e[0], e[1]) for e in points_to_capt])
+        G = nx.DiGraph()
+        G.add_nodes_from([(e[0], e[1]) for e in instance.targets + [(0, 0)]])
 
         E_capt = instance.neighbours_dict(instance.Rcapt)
-        for u in points_to_capt:
+        for u in self.list_captors:
+            G.add_edge((u[0], u[1]), (u[0], u[1]))
             G.add_edges_from([((u[0], u[1]), (v[0], v[1])) for v in E_capt[u]])
         self.disk_graph_capt = G
 
     def find_connected_components(self, instance):
+        """
+        Return the list of connected compononents.
+        A connected component is a list of captors that all have a captor at a distance < R_com within the component
+        """
         self.disk_graph_captors(instance)
         connected_components = nx.connected_components(self.disk_graph_com)
-        print("Captors")
-        print(self.list_captors)
-        print("Connected components")
-        for c in connected_components:
-            print([e for e in c])
-        print("---")
+        # print("Captors")
+        # print(self.list_captors)
+        # print("Connected components")
+        connected_components = [[e for e in c] for c in connected_components]
+        # print(connected_components)
         return connected_components
+
+    def find_not_covered_targets(self, instance):
+        not_covered = []
+        self.disk_graph_targets(instance)
+        targets_cover = self.disk_graph_capt.in_degree
+        for target in targets_cover:
+            if target[1] < instance.k:
+                not_covered.append(target[0])
+
+        return not_covered
+
+    def check_with_disk_graph(self, instance):
+        not_covered_targets = self.find_not_covered_targets(instance)
+        connected_components = self.find_connected_components(instance)
+        self.valid = len(not_covered_targets) == 0 and len(connected_components) == 1
+        return self.valid
 
     def reparation_heuristic(self, instance):
         """
             Implementation d'une heuristique de reparation
-        :param instance:
-        :return:
         """
+        not_covered_targets = self.find_not_covered_targets(instance)
+        connected_components = self.find_connected_components(instance)
+
+        print(f"The current solution has {len(not_covered_targets)} targets which are not sufficiently covered.")
+        print(f"The current solution has {len(connected_components)} unconnected groups of captors.")
+
         # Si des capteurs sont pas captés
         # TODO
 
         # Si la solution non connexe
         # On parcourt les composantes connexes des capteurs (sauf celle qui contient (0,0) ), et on les rend connexes
         # à celle qui contient (0, 0)
-        
 
-        return
+        return 0
 
 
 class TrivialSolution(Solution):
@@ -206,9 +241,9 @@ class MinCostFlowMethod(Solution):
         #print("flow value", flow_value)
         G = nx.DiGraph()
 
-        G.add_node((0,0,0), demand=-flow_value)
+        G.add_node((0, 0, 0), demand=-flow_value)
         G.add_nodes_from([(1, e[0], e[1]) for e in instance.points_to_cover])
-        G.add_node((1, 0, 0)) # on peut poser un capteur en 0
+        G.add_node((1, 0, 0))  # on peut poser un capteur en 0
         G.add_nodes_from([(2, e[0], e[1]) for e in instance.points_to_cover])
         G.add_node((3, 0, 0), demand=flow_value)
 
