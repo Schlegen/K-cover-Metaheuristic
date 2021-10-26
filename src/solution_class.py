@@ -1,10 +1,11 @@
 from copy import deepcopy
+from numpy.lib.function_base import insert
 from instance_class import Instance
 from utils.errors import Error, InputError
 import math as mh
 import numpy as np
 import matplotlib.pyplot as plt
-
+import itertools
 import networkx as nx
 from utils.math_utils import dist
 
@@ -153,7 +154,6 @@ class Solution:
 
         return
 
-
 class TrivialSolution(Solution):
 
     def __init__(self, instance):
@@ -174,7 +174,6 @@ class TrivialSolution(Solution):
             else:
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
-
 
 class TrivialSolutionRandomized(Solution):
 
@@ -198,40 +197,6 @@ class TrivialSolutionRandomized(Solution):
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
 
-
-class MinCostFlowMethod(Solution):
-    def __init__(self, instance):
-
-        flow_value = instance.k * instance.n_points_to_cover
-        #print("flow value", flow_value)
-        G = nx.DiGraph()
-
-        G.add_node((0,0,0), demand=-flow_value)
-        G.add_nodes_from([(1, e[0], e[1]) for e in instance.points_to_cover])
-        G.add_node((1, 0, 0)) # on peut poser un capteur en 0
-        G.add_nodes_from([(2, e[0], e[1]) for e in instance.points_to_cover])
-        G.add_node((3, 0, 0), demand=flow_value)
-
-        G.add_edges_from([((0, 0, 0), (1, v[0], v[1])) for v in instance.points_to_cover if dist((0,0), v) <= instance.Rcom])
-        G.add_edge((0, 0, 0), (1, 0, 0))
-
-        E_com = instance.neighbours(instance.Rcom, take_origin=True)
-        G.add_edges_from([((1, u[0], u[1]), (1, v[0], v[1])) for u, v in E_com], weight=1)
-
-        E_capt = instance.neighbours(instance.Rcapt, take_origin=False)
-        G.add_edges_from([((1, u[0], u[1]), (2, v[0], v[1])) for u, v in E_capt], capacity=1)
-        G.add_edges_from([((1, u[0], u[1]), (2, u[0], u[1])) for u in instance.points_to_cover], capacity=1)
-
-
-        G.add_edges_from([((2, v[0], v[1]), (3, 0, 0)) for v in instance.points_to_cover], capacity=instance.k)
-
-        self.graph = G
-        self.list_captors = []
-
-    def compute_flow(self):
-        self.flow = nx.algorithms.flow.min_cost_flow(self.graph)
-
-    def build_solution(self):
         self.list_captors = []
         n_captors = 0
         for key, value in self.flow[(0, 0, 0)].items():
@@ -252,3 +217,79 @@ class MinCostFlowMethod(Solution):
                     n_captors += 1
             
         return 0
+
+class TabuSearch(Solution):
+
+    def __init__(self, instance):
+
+        # classement des sommets
+        self.indexes = {e : i+1 for i,e in enumerate(sorted(instance.targets))}
+        self.indexes[(0, 0)] = 0
+
+        self.reversed_indexes = {i+1 : e for i,e in enumerate(sorted(instance.targets))}
+        self.reversed_indexes[0] = (0, 0)
+
+        # construction de la matrice d'adjacence de captation
+        capt_neighbours = instance.neighbours(instance.Rcapt, take_origin=False)
+        self.E_capt = np.zeros((instance.n_targets+1, instance.n_targets+1), dtype=np.int8)
+        for arc in capt_neighbours:
+            self.E_capt[self.indexes[arc[0]], self.indexes[arc[1]]] = 1
+
+        # construction de la matrice d'adjacence de communication
+        com_neighbours = instance.neighbours(instance.Rcom, take_origin=True)
+        self.E_com = np.zeros((instance.n_targets+1, instance.n_targets+1), dtype=np.int8)
+        for arc in com_neighbours:
+            self.E_com[self.indexes[arc[0]], self.indexes[arc[1]]] = 1
+
+        #construction de la matrice d'adjacence de 
+        self.captors = []
+
+    def GenerateInitialSolution(self, instance):
+        self.list_captors = []
+        
+        solution = np.zeros(instance.n_targets+1, dtype=np.int64)
+        solution[0] = 1
+
+        remaining_cover = instance.k * np.ones(instance.n_targets+1, dtype=np.int64)
+        remaining_cover[0] = 0
+
+        n = 0
+
+        while np.sum(remaining_cover) > 0:
+
+            n += 1
+
+            remaining_degrees_com = ((1 - solution.reshape(1, instance.n_targets+1)) @ self.E_com).flatten()
+            remaining_degrees_capt = (np.minimum(1, remaining_cover.reshape(1, instance.n_targets+1)) @ self.E_capt).flatten()
+            remaining_degrees = remaining_degrees_com + remaining_degrees_capt
+
+            connex_neighbours = np.minimum(1, (solution.reshape(1, instance.n_targets+1) @ self.E_com).flatten())
+
+            selected_captor = np.argmax(connex_neighbours * remaining_degrees * (1 - solution))
+            solution[selected_captor] = 1
+            self.list_captors.append(self.reversed_indexes[selected_captor])
+
+            for j in range(instance.n_targets+1):
+                if self.E_capt[selected_captor, j] == 1 and remaining_cover[j] > 0:
+                    remaining_cover[j] -= 1
+
+
+    def improve_solution(self, i, j):
+        ()
+
+    @class_method
+    def exchange11(cls, solution, i, j):
+        ()
+
+    @class_method
+    def exchange22(cls, solution, i, j):
+        ()
+
+    @class_method
+    def exchange21(cls, solution, i, j):
+        ()
+
+    def launch_search(self):
+        ()
+
+    def best_in_neighbourhood(self, n_neighbours):
