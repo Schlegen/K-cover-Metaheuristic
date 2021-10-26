@@ -1,0 +1,41 @@
+
+Welcome to IBM(R) ILOG(R) CPLEX(R) Interactive Optimizer 20.1.0.0
+  with Simplex, Mixed Integer & Barrier Optimizers
+5725-A06 5725-A29 5724-Y48 5724-Y49 5724-Y54 5724-Y55 5655-Y21
+Copyright IBM Corp. 1988, 2020.  All Rights Reserved.
+
+Type 'help' for a list of available commands.
+Type 'help' followed by a command name for more
+information on commands.
+
+CPLEX> Problem '/tmp/0fc285e5b5b343b094356608f83e396c-pulp.lp' read.
+Read time = 0.01 sec. (0.11 ticks)
+CPLEX> New value for time limit in seconds: 60
+CPLEX> Version identifier: 20.1.0.0 | 2020-11-10 | 9bedb6d68
+CPXPARAM_TimeLimit                               60
+Tried aggregator 1 time.
+LP Presolve eliminated 372 rows and 1 columns.
+Aggregator did 89 substitutions.
+Reduced LP has 358 rows, 1165 columns, and 3830 nonzeros.
+Presolve time = 0.00 sec. (1.97 ticks)
+
+Iteration log . . .
+Iteration:     1   Scaled dual infeas =             0.000000
+Iteration:     2   Dual objective     =             0.000000
+Iteration:    63   Dual objective     =             0.000000
+Perturbation started.
+Iteration:   103   Dual objective     =             0.000000
+Iteration:   188   Dual objective     =             0.000017
+Iteration:   264   Dual objective     =             4.500043
+Iteration:   336   Dual objective     =            13.657177
+Iteration:   398   Dual objective     =            18.921322
+Iteration:   460   Dual objective     =            19.197849
+Iteration:   522   Dual objective     =            19.197879
+Removing perturbation.
+
+Dual simplex - Optimal:  Objective =  1.9197727273e+01
+Solution time =    0.01 sec.  Iterations = 534 (1)
+Deterministic time = 8.58 ticks  (642.86 ticks/sec)
+
+CPLEX> Solution written to file '/tmp/0fc285e5b5b343b094356608f83e396c-pulp.sol'.
+CPLEX> 

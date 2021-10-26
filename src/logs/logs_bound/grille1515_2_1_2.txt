@@ -1,0 +1,46 @@
+
+Welcome to IBM(R) ILOG(R) CPLEX(R) Interactive Optimizer 20.1.0.0
+  with Simplex, Mixed Integer & Barrier Optimizers
+5725-A06 5725-A29 5724-Y48 5724-Y49 5724-Y54 5724-Y55 5655-Y21
+Copyright IBM Corp. 1988, 2020.  All Rights Reserved.
+
+Type 'help' for a list of available commands.
+Type 'help' followed by a command name for more
+information on commands.
+
+CPLEX> Problem '/tmp/dab96c43d275420bb5241e6aae5a6c11-pulp.lp' read.
+Read time = 0.01 sec. (0.25 ticks)
+CPLEX> New value for time limit in seconds: 60
+CPLEX> Version identifier: 20.1.0.0 | 2020-11-10 | 9bedb6d68
+CPXPARAM_TimeLimit                               60
+Tried aggregator 1 time.
+LP Presolve eliminated 848 rows and 1 columns.
+Aggregator did 201 substitutions.
+Reduced LP has 796 rows, 2713 columns, and 8952 nonzeros.
+Presolve time = 0.01 sec. (5.20 ticks)
+
+Iteration log . . .
+Iteration:     1   Scaled dual infeas =             0.000000
+Iteration:     2   Dual objective     =             0.000000
+Perturbation started.
+Iteration:   103   Dual objective     =             0.000000
+Iteration:   194   Dual objective     =             0.000015
+Iteration:   297   Dual objective     =             0.000033
+Iteration:   428   Dual objective     =             0.000069
+Iteration:   573   Dual objective     =             1.333457
+Iteration:   716   Dual objective     =            26.764004
+Iteration:   814   Dual objective     =            30.963053
+Iteration:   927   Dual objective     =            40.879340
+Iteration:  1000   Dual objective     =            41.494086
+Iteration:  1071   Dual objective     =            41.500320
+Iteration:  1143   Dual objective     =            41.672606
+Iteration:  1211   Dual objective     =            41.672641
+Iteration:  1301   Dual objective     =            41.672673
+Removing perturbation.
+
+Dual simplex - Optimal:  Objective =  4.1672222222e+01
+Solution time =    0.03 sec.  Iterations = 1314 (1)
+Deterministic time = 30.51 ticks  (961.09 ticks/sec)
+
+CPLEX> Solution written to file '/tmp/dab96c43d275420bb5241e6aae5a6c11-pulp.sol'.
+CPLEX> 

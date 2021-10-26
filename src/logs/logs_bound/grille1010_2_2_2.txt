@@ -1,0 +1,45 @@
+
+Welcome to IBM(R) ILOG(R) CPLEX(R) Interactive Optimizer 20.1.0.0
+  with Simplex, Mixed Integer & Barrier Optimizers
+5725-A06 5725-A29 5724-Y48 5724-Y49 5724-Y54 5724-Y55 5655-Y21
+Copyright IBM Corp. 1988, 2020.  All Rights Reserved.
+
+Type 'help' for a list of available commands.
+Type 'help' followed by a command name for more
+information on commands.
+
+CPLEX> Problem '/tmp/80610c07113540e0ae0b85f30fd0dcf6-pulp.lp' read.
+Read time = 0.01 sec. (0.16 ticks)
+CPLEX> New value for time limit in seconds: 60
+CPLEX> Version identifier: 20.1.0.0 | 2020-11-10 | 9bedb6d68
+CPXPARAM_TimeLimit                               60
+Tried aggregator 1 time.
+LP Presolve eliminated 872 rows and 1 columns.
+Aggregator did 89 substitutions.
+Reduced LP has 358 rows, 1665 columns, and 5823 nonzeros.
+Presolve time = 0.00 sec. (2.88 ticks)
+
+Iteration log . . .
+Iteration:     1   Scaled dual infeas =             0.000000
+Iteration:     2   Dual objective     =             0.000000
+Iteration:    63   Dual objective     =             0.000000
+Perturbation started.
+Iteration:   103   Dual objective     =             0.000000
+Iteration:   189   Dual objective     =             0.000013
+Iteration:   267   Dual objective     =             1.000037
+Iteration:   333   Dual objective     =             1.874526
+Iteration:   401   Dual objective     =             1.874591
+Iteration:   476   Dual objective     =             5.148834
+Iteration:   543   Dual objective     =             6.949847
+Iteration:   605   Dual objective     =             7.522493
+Iteration:   678   Dual objective     =             7.628659
+Iteration:   740   Dual objective     =             7.713014
+Iteration:   809   Dual objective     =             7.999716
+Removing perturbation.
+
+Dual simplex - Optimal:  Objective =  8.0017872741e+00
+Solution time =    0.02 sec.  Iterations = 850 (1)
+Deterministic time = 16.49 ticks  (681.83 ticks/sec)
+
+CPLEX> Solution written to file '/tmp/80610c07113540e0ae0b85f30fd0dcf6-pulp.sol'.
+CPLEX> 

@@ -1,0 +1,34 @@
+Version identifier: 12.10.0.0 | 2019-11-27 | 843d4de
+CPXPARAM_Read_DataCheck                          1
+CPXPARAM_TimeLimit                               60
+Tried aggregator 2 times.
+MIP Presolve eliminated 375 rows and 0 columns.
+Aggregator did 87 substitutions.
+Reduced MIP has 346 rows, 668 columns, and 2375 nonzeros.
+Reduced MIP has 0 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0,00 sec. (1,38 ticks)
+Tried aggregator 1 time.
+Detecting symmetries...
+Reduced MIP has 346 rows, 668 columns, and 2375 nonzeros.
+Reduced MIP has 0 binaries, 0 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0,00 sec. (1,00 ticks)
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: deterministic, using up to 8 threads.
+Root relaxation solution time = 0,01 sec. (6,54 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0     0      integral     0       18,3355       18,3355      522    0,00%
+Elapsed time = 0,01 sec. (9,52 ticks, tree = 0,00 MB, solutions = 1)
+
+Root node processing (before b&c):
+  Real time             =    0,01 sec. (9,56 ticks)
+Parallel b&c, 8 threads:
+  Real time             =    0,00 sec. (0,00 ticks)
+  Sync time (average)   =    0,00 sec.
+  Wait time (average)   =    0,00 sec.
+                          ------------
+Total (root+branch&cut) =    0,01 sec. (9,56 ticks)
+Cplex status= 101

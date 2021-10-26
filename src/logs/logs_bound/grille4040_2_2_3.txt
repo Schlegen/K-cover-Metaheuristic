@@ -1,0 +1,83 @@
+
+Welcome to IBM(R) ILOG(R) CPLEX(R) Interactive Optimizer 20.1.0.0
+  with Simplex, Mixed Integer & Barrier Optimizers
+5725-A06 5725-A29 5724-Y48 5724-Y49 5724-Y54 5724-Y55 5655-Y21
+Copyright IBM Corp. 1988, 2020.  All Rights Reserved.
+
+Type 'help' for a list of available commands.
+Type 'help' followed by a command name for more
+information on commands.
+
+CPLEX> Problem '/tmp/4d2f4c965d1949128e81364bba7f264d-pulp.lp' read.
+Read time = 0.08 sec. (4.20 ticks)
+CPLEX> New value for time limit in seconds: 60
+CPLEX> Version identifier: 20.1.0.0 | 2020-11-10 | 9bedb6d68
+CPXPARAM_TimeLimit                               60
+Parallel mode: deterministic, using up to 8 threads for concurrent optimization:
+ * Starting dual Simplex on 1 thread...
+ * Starting Barrier on 6 threads...
+ * Starting primal Simplex on 1 thread...
+Tried aggregator 1 time.
+LP Presolve eliminated 15757 rows and 1 columns.
+Aggregator did 1424 substitutions.
+Reduced LP has 5698 rows, 48786 columns, and 162038 nonzeros.
+Presolve time = 0.11 sec. (96.67 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =            -0.010000
+Perturbation started.
+Iteration:   101   Dual objective     =            -0.010000
+Iteration:   245   Dual objective     =            -0.009749
+Iteration:   373   Dual objective     =            -0.009650
+Iteration:   498   Dual objective     =            -0.009513
+Iteration:   625   Dual objective     =            -0.009433
+Iteration:   749   Dual objective     =            -0.009375
+Iteration:   884   Dual objective     =            -0.009306
+Iteration:  1013   Dual objective     =            -0.009262
+Iteration:  1153   Dual objective     =            -0.009215
+Iteration:  1292   Dual objective     =            -0.009185
+Iteration:  1425   Dual objective     =            -0.009158
+Iteration:  1579   Dual objective     =            -0.009127
+Iteration:  1834   Dual objective     =            -0.008714
+Iteration:  2174   Dual objective     =            -0.008686
+Iteration:  2447   Dual objective     =            -0.008660
+Iteration:  2803   Dual objective     =            -0.008625
+Iteration:  3256   Dual objective     =            -0.008551
+Iteration:  3683   Dual objective     =             2.324846
+Iteration:  4068   Dual objective     =             9.074804
+Iteration:  4431   Dual objective     =            14.824837
+Iteration:  4781   Dual objective     =            21.991441
+Iteration:  5094   Dual objective     =            26.991476
+Iteration:  5439   Dual objective     =            32.158139
+Iteration:  5801   Dual objective     =            38.574794
+Iteration:  6152   Dual objective     =            44.658128
+Iteration:  6483   Dual objective     =            49.408181
+Iteration:  6863   Dual objective     =            56.324840
+Iteration:  7193   Dual objective     =            66.241472
+Iteration:  7554   Dual objective     =            72.908153
+Iteration:  7906   Dual objective     =            79.824813
+Iteration:  8280   Dual objective     =            87.324788
+Iteration:  8539   Dual objective     =            93.574801
+Iteration:  8901   Dual objective     =           101.059632
+Iteration:  9250   Dual objective     =           108.643007
+Iteration:  9607   Dual objective     =           115.893024
+Iteration:  9702   Dual objective     =           115.893194
+Iteration:  9904   Dual objective     =           118.737490
+Iteration: 10079   Dual objective     =           118.738172
+Iteration: 10273   Dual objective     =           118.738332
+Iteration: 10503   Dual objective     =           119.051247
+Iteration: 10654   Dual objective     =           119.074124
+Iteration: 10823   Dual objective     =           119.074262
+Iteration: 10967   Dual objective     =           119.115906
+Iteration: 11117   Dual objective     =           119.115985
+Removing perturbation.
+
+Barrier solved model.
+
+
+Dual simplex - Optimal:  Objective =  1.1955132275e+02
+Solution time =    1.02 sec.  Iterations = 0 (0)
+Deterministic time = 845.89 ticks  (828.33 ticks/sec)
+
+CPLEX> Solution written to file '/tmp/4d2f4c965d1949128e81364bba7f264d-pulp.sol'.
+CPLEX> 

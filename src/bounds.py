@@ -101,31 +101,33 @@ class MilpApproach(Solution):
 
         self.model_relaxation = model
 
-    def exact_solution(self, time_limit=60):
-        solver = pl.CPLEX_PY()
-        solver.buildSolverModel(self.model_milp)
+    def exact_solution(self, cplex_path, time_limit=60):
+        solver = pl.CPLEX_CMD(path=cplex_path, timeLimit=time_limit)
 
-        #Modify the solver model
-        if time_limit:
-            solver.solverModel.parameters.timelimit.set(time_limit)
+        # #Modify the solver model
+        # if time_limit:
+        #     solver.solverModel.parameters.timelimit.set(time_limit)
 
-        solver.callSolver(self.model_milp)
-        status = solver.findSolutionValues(self.model_milp)
+        # solver.callSolver(self.model_milp)
+        # status = solver.findSolutionValues(self.model_milp)
+        self.model_milp.solve(solver)
         self.exact_solution_value = pl.value(self.model_milp.objective)
         #print((e[1], e[2]) for e in self.x_vars.keys())
         self.captors = [(e[1], e[2]) for e in self.x_vars.keys() if self.x_vars[e].value() > 0.5]
         print(self.captors)
 
-    def relaxation_value(self, time_limit=60):
-        solver = pl.CPLEX_PY()
-        solver.buildSolverModel(self.model_relaxation)
+
+    def relaxation_value(self, cplex_path, time_limit=60):
+        solver = pl.CPLEX_CMD(path=cplex_path, timeLimit=time_limit)
+        #solver.buildSolverModel(self.model_relaxation)
 
         #Modify the solver model
-        if time_limit:
-            solver.solverModel.parameters.timelimit.set(time_limit)
+        # if time_limit:
+        #     solver.solverModel.parameters.timelimit.set(time_limit)
 
-        solver.callSolver(self.model_relaxation)
-        status = solver.findSolutionValues(self.model_relaxation)
+        #solver.callSolver(self.model_relaxation)
+        #status = solver.findSolutionValues(self.model_relaxation)
+        self.model_relaxation.solve(solver)
         self.relaxation_value = pl.value(self.model_relaxation.objective)
 
     

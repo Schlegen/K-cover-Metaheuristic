@@ -1,0 +1,81 @@
+
+Welcome to IBM(R) ILOG(R) CPLEX(R) Interactive Optimizer 20.1.0.0
+  with Simplex, Mixed Integer & Barrier Optimizers
+5725-A06 5725-A29 5724-Y48 5724-Y49 5724-Y54 5724-Y55 5655-Y21
+Copyright IBM Corp. 1988, 2020.  All Rights Reserved.
+
+Type 'help' for a list of available commands.
+Type 'help' followed by a command name for more
+information on commands.
+
+CPLEX> Problem '/tmp/0f483a05dcb64265b313b469ee41d0b9-pulp.lp' read.
+Read time = 0.04 sec. (1.93 ticks)
+CPLEX> New value for time limit in seconds: 60
+CPLEX> Version identifier: 20.1.0.0 | 2020-11-10 | 9bedb6d68
+CPXPARAM_TimeLimit                               60
+Parallel mode: deterministic, using up to 8 threads for concurrent optimization:
+ * Starting dual Simplex on 1 thread...
+ * Starting Barrier on 6 threads...
+ * Starting primal Simplex on 1 thread...
+Tried aggregator 1 time.
+LP Presolve eliminated 6287 rows and 1 columns.
+Aggregator did 1424 substitutions.
+Reduced LP has 5698 rows, 20630 columns, and 68140 nonzeros.
+Presolve time = 0.05 sec. (48.36 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =            -0.010000
+Perturbation started.
+Iteration:   101   Dual objective     =            -0.010000
+Iteration:   235   Dual objective     =            -0.009164
+Iteration:   356   Dual objective     =            -0.008799
+Iteration:   477   Dual objective     =            -0.008650
+Iteration:   582   Dual objective     =            -0.008560
+Iteration:   711   Dual objective     =            -0.008365
+Iteration:   832   Dual objective     =            -0.008195
+Iteration:   953   Dual objective     =            -0.008100
+Iteration:  1079   Dual objective     =            -0.007978
+Iteration:  1211   Dual objective     =            -0.007841
+Iteration:  1343   Dual objective     =            -0.007711
+Iteration:  1481   Dual objective     =            -0.007557
+Iteration:  1606   Dual objective     =            -0.007470
+Iteration:  1748   Dual objective     =            -0.007368
+Iteration:  1893   Dual objective     =            -0.007274
+Iteration:  2173   Dual objective     =            -0.007201
+Iteration:  2450   Dual objective     =            -0.007127
+Iteration:  2714   Dual objective     =            -0.007055
+Iteration:  3044   Dual objective     =            -0.006946
+Iteration:  3431   Dual objective     =            12.326500
+Iteration:  3812   Dual objective     =            41.909886
+Iteration:  4182   Dual objective     =            79.050533
+Iteration:  4553   Dual objective     =           121.333885
+Iteration:  4946   Dual objective     =           172.675541
+Iteration:  5160   Dual objective     =           186.206506
+Iteration:  5434   Dual objective     =           201.566154
+Iteration:  5779   Dual objective     =           218.913809
+Iteration:  6113   Dual objective     =           235.456689
+Iteration:  6459   Dual objective     =           254.839618
+Iteration:  6801   Dual objective     =           276.294079
+Iteration:  7117   Dual objective     =           288.878901
+Iteration:  7283   Dual objective     =           289.379872
+Iteration:  7411   Dual objective     =           289.513324
+Iteration:  7552   Dual objective     =           289.513840
+Iteration:  7696   Dual objective     =           289.580581
+Iteration:  7844   Dual objective     =           289.581589
+Iteration:  7969   Dual objective     =           289.581785
+Iteration:  8095   Dual objective     =           289.581994
+Iteration:  8251   Dual objective     =           289.582320
+Iteration:  8394   Dual objective     =           289.582571
+Iteration:  8534   Dual objective     =           289.582844
+Iteration:  8663   Dual objective     =           289.583054
+Removing perturbation.
+
+Barrier solved model.
+
+
+Dual simplex - Optimal:  Objective =  2.8958661616e+02
+Solution time =    0.88 sec.  Iterations = 6 (0)
+Deterministic time = 431.70 ticks  (492.36 ticks/sec)
+
+CPLEX> Solution written to file '/tmp/0f483a05dcb64265b313b469ee41d0b9-pulp.sol'.
+CPLEX> 

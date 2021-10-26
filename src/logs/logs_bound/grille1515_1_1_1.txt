@@ -1,0 +1,47 @@
+
+Welcome to IBM(R) ILOG(R) CPLEX(R) Interactive Optimizer 20.1.0.0
+  with Simplex, Mixed Integer & Barrier Optimizers
+5725-A06 5725-A29 5724-Y48 5724-Y49 5724-Y54 5724-Y55 5655-Y21
+Copyright IBM Corp. 1988, 2020.  All Rights Reserved.
+
+Type 'help' for a list of available commands.
+Type 'help' followed by a command name for more
+information on commands.
+
+CPLEX> Problem '/tmp/937db4df059c44128fc4f9b9b846d83a-pulp.lp' read.
+Read time = 0.01 sec. (0.18 ticks)
+CPLEX> New value for time limit in seconds: 60
+CPLEX> Version identifier: 20.1.0.0 | 2020-11-10 | 9bedb6d68
+CPXPARAM_TimeLimit                               60
+Tried aggregator 1 time.
+LP Presolve eliminated 911 rows and 1 columns.
+Aggregator did 199 substitutions.
+Reduced LP has 793 rows, 1624 columns, and 5764 nonzeros.
+Presolve time = 0.00 sec. (3.82 ticks)
+
+Iteration log . . .
+Iteration:     1   Scaled dual infeas =             0.000000
+Iteration:     2   Dual objective     =             0.000000
+Iteration:    79   Dual objective     =             0.000000
+Perturbation started.
+Iteration:   103   Dual objective     =             0.000000
+Iteration:   186   Dual objective     =             0.000021
+Iteration:   307   Dual objective     =             0.000063
+Iteration:   442   Dual objective     =             0.000121
+Iteration:   579   Dual objective     =             4.708521
+Iteration:   681   Dual objective     =            14.858536
+Iteration:   794   Dual objective     =            26.786678
+Iteration:   878   Dual objective     =            32.898753
+Iteration:   976   Dual objective     =            40.404301
+Iteration:  1044   Dual objective     =            40.413961
+Iteration:  1131   Dual objective     =            40.415025
+Iteration:  1197   Dual objective     =            40.646376
+Iteration:  1289   Dual objective     =            40.771079
+Removing perturbation.
+
+Dual simplex - Optimal:  Objective =  4.0819060746e+01
+Solution time =    0.03 sec.  Iterations = 1343 (1)
+Deterministic time = 26.56 ticks  (980.84 ticks/sec)
+
+CPLEX> Solution written to file '/tmp/937db4df059c44128fc4f9b9b846d83a-pulp.sol'.
+CPLEX> 
