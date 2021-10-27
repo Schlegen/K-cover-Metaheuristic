@@ -2,7 +2,6 @@ from copy import deepcopy
 from instance_class import Instance
 from solution_class import Solution
 from utils.errors import Error, InputError
-import math as mh
 import numpy as np
 import matplotlib.pyplot as plt
 import random as rd
@@ -22,7 +21,7 @@ class Chromosome(Solution):
         self.instance = instance
         self.valid = False
         self.list_captors = list_captors
-        self.captors_binary = [0 for i in range(len(instance.targets) + 1)]  # + 1 for the origin
+        self.captors_binary = list()
         self.fitness_value = 0
         self.nb_captors = None
 
@@ -31,8 +30,6 @@ class Chromosome(Solution):
 
     def draw_main_info(self, instance):
         # TODO : A enrichir pour afficher les liens de communication et de captation
-
-        plt.figure("Solution")
         for i in range(instance.n):
             for j in range(instance.m):
                 if instance.grid[i, j] == 1:
@@ -49,7 +46,7 @@ class Chromosome(Solution):
             plt.scatter(target[0], target[1], marker="+", color='red')
 
     def display(self, instance, uncovered_targets=None):
-        plt.figure("Solution")
+        plt.figure(f"Solution of value {self.nb_captors}")
         self.draw_main_info(instance)
         if not self.valid and uncovered_targets is not None:
             self.draw_uncovered_targets(uncovered_targets)
@@ -165,15 +162,16 @@ class Chromosome(Solution):
         i = rd.randint(0, len(not_covered_targets) - 1)
         return not_covered_targets[i]
 
-    def reparation_heuristic(self, instance):
+    def reparation_heuristic(self, instance, verbose=False):
         """
             Implementation d'une heuristique de reparation
         """
 
         not_covered_targets = self.find_not_covered_targets(instance)
-        print("")
-        print(f"The current solution has {len(not_covered_targets)} targets which are not sufficiently covered.")
-        self.display(instance, not_covered_targets)
+        if verbose:
+            print("")
+            print(f"The current solution has {len(not_covered_targets)} targets which are not sufficiently covered.")
+        # self.display(instance, not_covered_targets)
 
         # init with the farthest captor from the origin (for version 1 only)
         # v = dist_point_to_list((0, 0), self.list_captors)[-1][1]
@@ -184,11 +182,13 @@ class Chromosome(Solution):
             v = self.find_best_candidate_covering_v2(not_covered_targets)
             self.list_captors.append(v)
             not_covered_targets = self.find_not_covered_targets(instance)
-            print(f"- {len(not_covered_targets)} targets not sufficiently covered.")
+            if verbose:
+                print(f"- {len(not_covered_targets)} targets not sufficiently covered.")
             # self.display(instance, not_covered_targets)
 
         connected_components = self.find_connected_components(instance)
-        print(f"The current solution has {len(connected_components)} unconnected groups of captors.")
+        if verbose:
+            print(f"The current solution has {len(connected_components)} unconnected groups of captors.")
 
         # Si la solution non connexe
         # On parcourt les composantes connexes des capteurs (sauf celle qui contient (0,0) ), et on les rend connexes
@@ -198,9 +198,29 @@ class Chromosome(Solution):
             v = self.find_best_candidate_connectivity(instance, connected_components)
             self.list_captors.append(v)
             connected_components = self.find_connected_components(instance)
-            print(f"- {len(connected_components)} unconnected groups of captors.")
+            if verbose:
+                print(f"- {len(connected_components)} unconnected groups of captors.")
 
-        return 0
+        # Update captors attributes
+        self.nb_captors = len(self.list_captors)
+        self.update_captors_binary()
+
+    def update_list_captors(self):
+        self.list_captors = list()
+        for i in range(len(self.captors_binary) - 1):
+            if int(self.captors_binary[i]) == 1:
+                self.list_captors.append(self.instance.targets[i])
+        if int(self.captors_binary[-1]) == 1:
+            self.list_captors.append((0, 0))
+
+    def update_captors_binary(self):
+        n = len(self.instance.targets)
+        self.captors_binary = [0 for k in range(n + 1)]  # + 1 for the origin
+        for i in range(n):
+            if self.instance.targets[i] in self.list_captors:
+                self.captors_binary[i] = 1
+        if (0, 0) in self.list_captors:
+            self.captors_binary[-1] = 1
 
 
 class TrivialSolutionRandomized(Chromosome):
@@ -225,8 +245,4 @@ class TrivialSolutionRandomized(Chromosome):
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
 
-        for i in range(n):
-            if instance.targets[i] in self.list_captors:
-                self.captors_binary[i] = 1
-        if (0, 0) in self.list_captors:
-            self.captors_binary[-1] = 1
+        self.update_captors_binary()
