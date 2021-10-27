@@ -289,7 +289,7 @@ class TabuSearch(Solution):
     def exchange21(cls, solution, i, j):
         ()
 
-    def launch_search(self):
+    def search(self):
         ()
 
     def best_in_neighbourhood(self, n_neighbours):
