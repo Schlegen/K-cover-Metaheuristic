@@ -17,6 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--save_file", help="Path to the score file", type=str, default="data/scores.csv")
     parser.add_argument("-rcom", "--rcom", help="value of R_com", type=int, default=1)
     parser.add_argument("-rcapt", "--rcapt", help="Value of R_capt", type=int, default=1)
+    parser.add_argument("-k", "--k", help="Value of k", type=int, default=1)
     parser.add_argument("-cplex", "--cplex", help="Path to the cplex executable", type=str, default="")
     args = parser.parse_args()
 
@@ -25,7 +26,9 @@ if __name__ == "__main__":
     mode = args.mode
     Rcom = args.rcom
     Rcapt = args.rcapt
+    k = args.k
     path_cplex = args.cplex
+
 
     if mode == "bound":
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom)
@@ -51,9 +54,10 @@ if __name__ == "__main__":
 
     elif mode == "tabu":
 
-        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom)
+        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k)
         tabu = TabuSearch(instance)
         tabu.GenerateInitialSolution(instance)
+        tabu.is_valid(instance)
         tabu.display(instance)
         print("resultat tabu : ", tabu.value())
 
