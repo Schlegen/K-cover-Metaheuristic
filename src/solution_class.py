@@ -6,8 +6,10 @@ import math as mh
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
+import random as rd
+
 import networkx as nx
-from utils.math_utils import dist
+from utils.math_utils import dist, dist_point_to_list
 
 
 class Solution:
@@ -18,8 +20,8 @@ class Solution:
         Args:
             list_captors (list of tuples): liste des coordonnées des capteurs dans la solution
         """
+        self.valid = False
         self.list_captors = list_captors
-        self.captors = None
 
     def is_valid(self, instance):
         # TODO : l'améliorer pour qu'elle renvoie False très vite selon certains critères (nombre mini de capteurs par
@@ -33,11 +35,6 @@ class Solution:
             instance (Instance): instance à laquelle correspond la solution
         """
         void_grid = deepcopy(instance.grid)
-        self.captors = np.array(
-            [[int((i, j) in self.list_captors) for i in range(instance.n)] for j in range(instance.m)]
-        )
-        # je pense qu'il faudra tot ou tard travailler avec un tableau binaire comme ca,
-        # qui represente la variable x binaire du pb lineaire
 
         Rmax = int(max(instance.Rcapt, instance.Rcom))
 
@@ -48,8 +45,6 @@ class Solution:
                 raise InputError(f"Solution invalide : On ne peut pas placer le capteur ({i},{j})")
             else:
                 void_grid[captor[0], captor[1]] = 3
-
-                self.captors[i] = 1
 
         captors_to_treat = []  # liste des sommets qui communiquent avec le puits
         n_covered_points = 0  # nombre de points couverts par les capteurs
@@ -78,81 +73,35 @@ class Solution:
                             captors_to_treat.append((captor[0] + i, captor[1] + j))
                             n_covered_points += 1
                             void_grid[captor[0] + i, captor[1] + j] = 0
-        return n_covered_points == instance.n * instance.m - instance.n_deleted_points
+        self.valid = n_covered_points == instance.n * instance.m - instance.n_deleted_points
+        return self.valid
 
     def value(self):
         return len(self.list_captors)
 
-    def display(self, instance):
+    def draw_main_info(self, instance):
         # TODO : A enrichir pour afficher les liens de communication et de captation
-
-        plt.figure("Solution")
         for i in range(instance.n):
             for j in range(instance.m):
                 if instance.grid[i, j] == 1:
                     plt.scatter(i, j, marker="+", color='blue')
                 elif instance.grid[i, j] == 2:
-                    plt.scatter(i, j, marker="o", color='red')
+                    plt.scatter(i, j, marker="o", color='black')
 
         for captor in self.list_captors:
             plt.scatter(captor[0], captor[1], marker="D", color='orange')
+
+    @staticmethod
+    def draw_uncovered_targets(targets):
+        for target in targets:
+            plt.scatter(target[0], target[1], marker="+", color='red')
+
+    def display(self, instance, uncovered_targets=None):
+        plt.figure("Solution")
+        self.draw_main_info(instance)
+        if not self.valid and uncovered_targets is not None:
+            self.draw_uncovered_targets(uncovered_targets)
         plt.show()
-
-    def disk_graph_captors(self, instance):
-        """
-            Generates the disk graph of captors, with radius = Rcom
-        """
-        G = nx.Graph()
-        points_to_communicate_with = self.list_captors + [(0, 0)]
-        G.add_nodes_from([(e[0], e[1]) for e in points_to_communicate_with])
-
-        E_com = instance.neighbours_dict(instance.Rcom)
-        for u in points_to_communicate_with:
-            for v in E_com[u]:
-                if v in points_to_communicate_with:
-                    G.add_edge((u[0], u[1]), (v[0], v[1]))
-            # G.add_edges_from([((u[0], u[1]), (v[0], v[1])) for v in E_com[u]])
-        self.disk_graph_com = G
-
-    def disk_graph_targets(self, instance):
-        """
-            Generates the disk graph of targets, with radius = Rcapt
-        """
-        G = nx.Graph()
-        points_to_capt = self.list_captors
-        G.add_nodes_from([(e[0], e[1]) for e in points_to_capt])
-
-        E_capt = instance.neighbours_dict(instance.Rcapt)
-        for u in points_to_capt:
-            G.add_edges_from([((u[0], u[1]), (v[0], v[1])) for v in E_capt[u]])
-        self.disk_graph_capt = G
-
-    def find_connected_components(self, instance):
-        self.disk_graph_captors(instance)
-        connected_components = nx.connected_components(self.disk_graph_com)
-        print("Captors")
-        print(self.list_captors)
-        print("Connected components")
-        for c in connected_components:
-            print([e for e in c])
-        print("---")
-        return connected_components
-
-    def reparation_heuristic(self, instance):
-        """
-            Implementation d'une heuristique de reparation
-        :param instance:
-        :return:
-        """
-        # Si des capteurs sont pas captés
-        # TODO
-
-        # Si la solution non connexe
-        # On parcourt les composantes connexes des capteurs (sauf celle qui contient (0,0) ), et on les rend connexes
-        # à celle qui contient (0, 0)
-        
-
-        return
 
 class TrivialSolution(Solution):
 
@@ -175,7 +124,8 @@ class TrivialSolution(Solution):
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
 
-class TrivialSolutionRandomized(Solution):
+
+class TrivialSolutionRandomized0(Solution):
 
     def __init__(self, instance):
         # We consider the trivial solution : all targets get a captor

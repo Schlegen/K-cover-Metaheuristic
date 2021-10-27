@@ -72,6 +72,7 @@ if __name__ == "__main__":
 # instance = Instance.from_disk(data_file, Rcom=2)
 # instance.display()
 
+start = time.time()
 # solution = Solution([(1, 0), (2, 0), (3, 0), (3, 2), (3, 3), (0, 1), (0, 2), (1, 2), (1, 3)])
 # solution1 = Solution([(1, 0), (2, 0), (3, 0), (3, 2), (3, 3), (0, 1), (0, 2), (1, 2), (1, 3), (6, 6), (6, 7)])
 # solution1 = TrivialSolution(instance)
