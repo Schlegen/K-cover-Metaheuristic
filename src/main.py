@@ -1,5 +1,5 @@
 from instance_class import Instance
-from solution_class import Solution, TrivialSolution, MinCostFlowMethod, TrivialSolutionRandomized0
+from solution_class import Solution, TrivialSolution, TrivialSolutionRandomized0, TabuSearch
 import time
 from utils.errors import InputError
 from bounds import MilpApproach
@@ -12,11 +12,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", help="mode of the execution",
-                    choices=["bound", "genetic", "kruskal", "test"], default="test")
+                    choices=["bound", "genetic", "tabu", "test"], default="test")
     parser.add_argument("-d", "--data_path", help="path to the instance", type=str, default="data/grille1010_1.dat")
     parser.add_argument("-s", "--save_file", help="Path to the score file", type=str, default="data/scores.csv")
     parser.add_argument("-rcom", "--rcom", help="value of R_com", type=int, default=1)
     parser.add_argument("-rcapt", "--rcapt", help="Value of R_capt", type=int, default=1)
+    parser.add_argument("-k", "--k", help="Value of k", type=int, default=1)
     parser.add_argument("-cplex", "--cplex", help="Path to the cplex executable", type=str, default="")
     args = parser.parse_args()
 
@@ -25,7 +26,9 @@ if __name__ == "__main__":
     mode = args.mode
     Rcom = args.rcom
     Rcapt = args.rcapt
+    k = args.k
     path_cplex = args.cplex
+
 
     if mode == "bound":
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom)
@@ -49,9 +52,14 @@ if __name__ == "__main__":
     
         # Maxime
 
-    elif mode == "kruskal":
-        ()
-        # Nicolas
+    elif mode == "tabu":
+
+        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k)
+        tabu = TabuSearch(instance)
+        tabu.GenerateInitialSolution(instance)
+        tabu.is_valid(instance)
+        tabu.display(instance)
+        print("resultat tabu : ", tabu.value())
 
     elif mode == "test":
         ()

@@ -1,9 +1,12 @@
 from copy import deepcopy
+from numpy.lib.function_base import insert
 from instance_class import Instance
 from utils.errors import Error, InputError
+from utils.math_utils import subgraph_is_connex
 import math as mh
 import numpy as np
 import matplotlib.pyplot as plt
+import itertools
 import random as rd
 
 import networkx as nx
@@ -101,7 +104,6 @@ class Solution:
             self.draw_uncovered_targets(uncovered_targets)
         plt.show()
 
-
 class TrivialSolution(Solution):
 
     def __init__(self, instance):
@@ -122,7 +124,6 @@ class TrivialSolution(Solution):
             else:
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
-
 
 class TrivialSolutionRandomized0(Solution):
 
@@ -146,40 +147,6 @@ class TrivialSolutionRandomized0(Solution):
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
 
-
-class MinCostFlowMethod(Solution):
-    def __init__(self, instance):
-
-        flow_value = instance.k * instance.n_points_to_cover
-        #print("flow value", flow_value)
-        G = nx.DiGraph()
-
-        G.add_node((0, 0, 0), demand=-flow_value)
-        G.add_nodes_from([(1, e[0], e[1]) for e in instance.points_to_cover])
-        G.add_node((1, 0, 0))  # on peut poser un capteur en 0
-        G.add_nodes_from([(2, e[0], e[1]) for e in instance.points_to_cover])
-        G.add_node((3, 0, 0), demand=flow_value)
-
-        G.add_edges_from([((0, 0, 0), (1, v[0], v[1])) for v in instance.points_to_cover if dist((0,0), v) <= instance.Rcom])
-        G.add_edge((0, 0, 0), (1, 0, 0))
-
-        E_com = instance.neighbours(instance.Rcom, take_origin=True)
-        G.add_edges_from([((1, u[0], u[1]), (1, v[0], v[1])) for u, v in E_com], weight=1)
-
-        E_capt = instance.neighbours(instance.Rcapt, take_origin=False)
-        G.add_edges_from([((1, u[0], u[1]), (2, v[0], v[1])) for u, v in E_capt], capacity=1)
-        G.add_edges_from([((1, u[0], u[1]), (2, u[0], u[1])) for u in instance.points_to_cover], capacity=1)
-
-
-        G.add_edges_from([((2, v[0], v[1]), (3, 0, 0)) for v in instance.points_to_cover], capacity=instance.k)
-
-        self.graph = G
-        self.list_captors = []
-
-    def compute_flow(self):
-        self.flow = nx.algorithms.flow.min_cost_flow(self.graph)
-
-    def build_solution(self):
         self.list_captors = []
         n_captors = 0
         for key, value in self.flow[(0, 0, 0)].items():
@@ -200,3 +167,166 @@ class MinCostFlowMethod(Solution):
                     n_captors += 1
             
         return 0
+
+class TabuSearch(Solution):
+
+    def __init__(self, instance):
+
+        # classement des sommets
+        self.indexes = {e : i+1 for i,e in enumerate(sorted(instance.targets))}
+        self.indexes[(0, 0)] = 0
+
+        self.reversed_indexes = {i+1 : e for i,e in enumerate(sorted(instance.targets))}
+        self.reversed_indexes[0] = (0, 0)
+
+        # construction de la matrice d'adjacence de captation
+        capt_neighbours = instance.neighbours(instance.Rcapt, take_origin=False)
+        self.E_capt = np.zeros((instance.n_targets+1, instance.n_targets+1), dtype=np.int8)
+        for arc in capt_neighbours:
+            self.E_capt[self.indexes[arc[0]], self.indexes[arc[1]]] = 1
+
+        # construction de la matrice d'adjacence de communication
+        com_neighbours = instance.neighbours(instance.Rcom, take_origin=True)
+        self.E_com = np.zeros((instance.n_targets+1, instance.n_targets+1), dtype=np.int8)
+        for arc in com_neighbours:
+            self.E_com[self.indexes[arc[0]], self.indexes[arc[1]]] = 1
+
+        #construction de la matrice d'adjacence de 
+        self.captors = []
+
+    def GenerateInitialSolution(self, instance):
+        self.list_captors = []
+        
+        solution = np.zeros(instance.n_targets+1, dtype=np.int64)
+        solution[0] = 1
+
+        #tableau notant le nombre de capteurs manquant à chaque cible (peut être négatif en cas d'exces)
+        coverage_vect = instance.k * np.ones(instance.n_targets+1, dtype=np.int64)
+        coverage_vect[0] = 0
+
+        n = 0
+
+        while np.any(coverage_vect > 0):
+
+            n += 1
+
+            remaining_degrees_com = ((1 - solution.reshape(1, instance.n_targets+1)) @ self.E_com).flatten()
+            remaining_degrees_capt = (np.minimum(1, np.maximum(0, coverage_vect.reshape(1, instance.n_targets+1))) @ self.E_capt).flatten()
+            remaining_degrees = remaining_degrees_com + remaining_degrees_capt
+
+            connex_neighbours = np.minimum(1, (solution.reshape(1, instance.n_targets+1) @ self.E_com).flatten())
+            selected_captor = np.argmax(connex_neighbours * remaining_degrees * (1 - solution))
+            solution[selected_captor] = 1
+
+            # mise à jour des sommets captés
+            for j in range(instance.n_targets+1):
+                if self.E_capt[selected_captor, j] == 1:# and coverage_vect[j] > 0:
+                    coverage_vect[j] -= 1
+
+        # suppression des capteurs que l'on peut enlever (algo glouton)
+        for u in np.argwhere(solution).flatten():
+            if u > 0:
+                
+                can_remove = True
+    
+                # on regarde si les cibles captées seraient suffisemment captées sans le capteur
+                list_capt = np.argwhere(self.E_capt[u].flatten()).flatten()
+                n_capted = len(list_capt)
+                i = 0
+                while (i < n_capted) and can_remove:
+                    v = list_capt[i]
+                    can_remove = coverage_vect[v] < 0
+                    i += 1
+
+                # ensuite on regarde si la connexité est conservée
+                solution_without_u = deepcopy(solution)
+                solution_without_u[u] = 0
+                can_remove = can_remove and subgraph_is_connex(self.E_com, np.argwhere(solution_without_u).flatten())
+
+                # on enleve les sommets et on met à jour les sommets captés
+                if can_remove:
+                    solution[u] = 0
+                    for target in list_capt:
+                        coverage_vect[target] += 1
+
+                else:
+                    self.list_captors.append(self.reversed_indexes[u])
+
+    @class_method
+    def delete_capt(cls, solution, coverage_vect, v):
+        """ supprime un capteur et met à jour la solution associée
+        s'assurer qu'un capteur est bien placé à l'indice correspondant
+
+        Args:
+            solution (np.array): vecteur de taille n_targets+1 avec des 1 aux emplacements des capteurs
+            coverage_vect (np.array): vecteur de taille n_targets+1 stockant le nombre de capteurs captant chaque sommet
+            v (int): indice de l'emplacement du capteur sortant
+
+        modifie solution et coverage_vect
+        """
+
+        solution[v] = 0
+        coverage_vect[target] -= self.E_capt[v].flatten()
+
+    @class_method
+    def add_capt(cls, solution, coverage_vect, v):
+        """ ajoute un capteur et met à jour la solution associée
+        s'assurer qu'aucun capteur n'est placé à l'indice correspondant
+
+        Args:
+            solution (np.array): vecteur de taille n_targets+1 avec des 1 aux emplacements des capteurs
+            coverage_vect (np.array): vecteur de taille n_targets+1 stockant le nombre de capteurs captant chaque sommet
+            v (int): indice de l'emplacement du capteur entrant
+
+        modifie solution et coverage_vect
+        """
+
+        solution[v] = 1
+        coverage_vect[target] += self.E_capt[v].flatten()
+
+    @classmethod
+    def exchange11(cls, solution, coverage_vect, v_out, v_in):
+        """ transformation deplace un capteur en v_in vers v_out
+            il faut s'assurer en amont que la solution possede un capteur en v_out et pas en v_in
+
+        Args:
+            solution (np.array): vecteur de taille n_targets+1 avec des 1 aux emplacements des capteurs
+            coverage_vect (np.array): vecteur de taille n_targets+1 stockant le nombre de capteurs captant chaque sommet
+            v_out (int): indice de l'emplacement du capteur sortant
+            v_in (int): indice de l'emplacement du capteur entrant
+
+        modifie solution et coverage_vect
+        """
+        cls.delete_capt(solution, coverage_vect, v_out)
+        cls.add_capt(solution, coverage_vect, v_in)
+
+    @classmethod
+    def exchange22(cls, solution, coverage_vect, v_out1, v_out2, v_in1, v_in2):
+        """ transformation deplace deux capteurs de v_out1 et v_out2 vers v_in1, v_in2
+            il faut s'assurer en amont que la solution possede des capteur en v_out1 et v_out2 et pas en v_in1 ni v_in2
+
+        Args:
+            solution (np.array): vecteur de taille n_targets+1 avec des 1 aux emplacements des capteurs
+            coverage_vect (np.array): vecteur de taille n_targets+1 stockant le nombre de capteurs captant chaque sommet
+            v_out (int): indice de l'emplacement du capteur sortant
+            v_in (int): indice de l'emplacement du capteur entrant
+
+        modifie solution et coverage_vect
+        """
+
+        cls.delete_capt(solution, coverage_vect, v_out1)
+        cls.delete_capt(solution, coverage_vect, v_out2)
+        cls.add_capt(solution, coverage_vect, v_in1)
+        cls.add_capt(solution, coverage_vect, v_in2)
+
+    @classmethod
+    def exchange21(cls, solution, coverage_vect, v_out1, v_out2, v_in1)
+        cls.delete_capt(solution, coverage_vect, v_out1)
+        cls.delete_capt(solution, coverage_vect, v_out2)
+        cls.add_capt(solution, coverage_vect, v_in1)
+
+    def search(self, n_max, initial_solution):
+        ()
+
+    def best_in_neighbourhood(self, n_neighbours):
+        ()
