@@ -104,6 +104,7 @@ class Solution:
             self.draw_uncovered_targets(uncovered_targets)
         plt.show()
 
+
 class TrivialSolution(Solution):
 
     def __init__(self, instance):
@@ -124,6 +125,7 @@ class TrivialSolution(Solution):
             else:
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
+
 
 class TrivialSolutionRandomized0(Solution):
 
@@ -167,6 +169,7 @@ class TrivialSolutionRandomized0(Solution):
                     n_captors += 1
             
         return 0
+
 
 class TabuSearch(Solution):
 
@@ -252,7 +255,7 @@ class TabuSearch(Solution):
                 else:
                     self.list_captors.append(self.reversed_indexes[u])
 
-    @class_method
+    @classmethod
     def delete_capt(cls, solution, coverage_vect, v):
         """ supprime un capteur et met à jour la solution associée
         s'assurer qu'un capteur est bien placé à l'indice correspondant
@@ -266,9 +269,9 @@ class TabuSearch(Solution):
         """
 
         solution[v] = 0
-        coverage_vect[target] -= self.E_capt[v].flatten()
+        # coverage_vect[target] -= self.E_capt[v].flatten()
 
-    @class_method
+    @classmethod
     def add_capt(cls, solution, coverage_vect, v):
         """ ajoute un capteur et met à jour la solution associée
         s'assurer qu'aucun capteur n'est placé à l'indice correspondant
@@ -282,7 +285,7 @@ class TabuSearch(Solution):
         """
 
         solution[v] = 1
-        coverage_vect[target] += self.E_capt[v].flatten()
+        # coverage_vect[target] += self.E_capt[v].flatten()
 
     @classmethod
     def exchange11(cls, solution, coverage_vect, v_out, v_in):
@@ -320,7 +323,7 @@ class TabuSearch(Solution):
         cls.add_capt(solution, coverage_vect, v_in2)
 
     @classmethod
-    def exchange21(cls, solution, coverage_vect, v_out1, v_out2, v_in1)
+    def exchange21(cls, solution, coverage_vect, v_out1, v_out2, v_in1):
         cls.delete_capt(solution, coverage_vect, v_out1)
         cls.delete_capt(solution, coverage_vect, v_out2)
         cls.add_capt(solution, coverage_vect, v_in1)
