@@ -22,7 +22,7 @@ class AlgoGenetic:
         self.children = list()
         self.nb_pairs = int(nb_initial_solutions / 2)
 
-        self.nb_parents_to_keep = int(nb_initial_solutions / 2) + 1
+        self.nb_parents_to_keep = int(nb_initial_solutions / 4) + 1
         self.nb_children_to_keep = nb_initial_solutions - self.nb_parents_to_keep
 
     def init_population(self, n):
@@ -96,7 +96,8 @@ class AlgoGenetic:
 
     # crossover operator
     def disk_crossover(self, pairs):
-        radius_for_crossover = rd.randint(self.instance.Rcom, 3 * self.instance.Rcom)
+        # we take a disk with : Rcom <= radius <= 2*Rcom
+        radius_for_crossover = rd.randint(self.instance.Rcom, 2 * self.instance.Rcom)
         neighbours = self.instance.neighbours_dict(radius_for_crossover)
 
         for i in range(len(pairs)):
@@ -124,19 +125,26 @@ class AlgoGenetic:
             self.children.append(chromosome_2)
 
     # mutation operator
-    def mutation(self, proba=0.1):
+    def mutation(self, proba=0.3):
         for i in range(len(self.children)):
-            print(self.children[i].captors_binary)
-            r = rd.random
+            # print(f"Before mutation : value {len(self.children[i].list_captors)}")
+            # print(self.children[i].captors_binary)
+            r = rd.random()
             if r < proba:
-                # TODO : mutation
-                # on fait un tabou au sein d'un disque random avec pénalisation si irréalisable (plutot que de rendre
-                # realisable c'est plus simple et de toute ca degage juste derriere)
+                # on fait un tabou avec voisin = disque Rcom avec pénalisation si irréalisable
+                solution, value = self.children[i].tabu_search(size=8, max_iter=30)
+                # print(f"After mutation : value {value}")
+                # print(solution)
 
-                print("Mutation done")
-
+                self.children[i].captors_binary = deepcopy(solution)
                 self.children[i].update_list_captors()
-        pass
+
+    def compute_diversity_population(self):
+        """ Compute the mean of the standard deviation between each solution of the population.
+            Use to detect if the population has stabilized around an almost fixed solution"""
+        solutions = np.array([self.population[i].captors_binary for i in range(len(self.population))])
+        standard_deviation_mean = np.mean(np.std(solutions, axis=0))
+        return standard_deviation_mean
 
     # main function
     def evolutionary_algorithm(self, nb_iter):
@@ -149,9 +157,8 @@ class AlgoGenetic:
             # Compute the fitness function for all the population
             self.init_fitness_value(self.population)
 
-            print("")
-            print(f"Values at iteration {iteration}")
             values = [self.population[i].nb_captors for i in range(len(self.population))]
+            print(f"\n=== [ {iteration} / {nb_iter} ] ===")
             print(values)
             solutions_values.append(values)
 
@@ -165,7 +172,7 @@ class AlgoGenetic:
                     self.children[i].reparation_heuristic(self.instance)
 
             # Mutation step
-            # self.mutation()
+            self.mutation()
             # for i in range(len(self.children)):
             #     if not self.children[i].is_valid():
             #         self.children[i].reparation_heuristic(self.instance)
@@ -182,14 +189,13 @@ class AlgoGenetic:
 
             self.children = list()
 
-            print(self.population[0].captors_binary)
-            print(self.population[1].captors_binary)
-
-        print("\nEND")
         self.init_fitness_value(self.population)
         values = [self.population[i].nb_captors for i in range(len(self.population))]
+        print(f"\n=== [ {nb_iter} / {nb_iter} ] ===")
         print(values)
         solutions_values.append(values)
+
+        print(f"Mean std : {self.compute_diversity_population()}")
 
         min_values = np.min(np.array(solutions_values), axis=1)
         max_values = np.max(np.array(solutions_values), axis=1)
@@ -208,3 +214,12 @@ class AlgoGenetic:
         best_solution_index = int(np.argmin(self.fitness_values))
         self.population[best_solution_index].display(self.instance)
 
+
+# Parameters to vary
+## initial population
+## nb max iterations
+## proportion parents / children to keep at each iteration
+## size of disk for crossover
+## proba for mutation
+## nb max iterations for tabou
+## size tabu list

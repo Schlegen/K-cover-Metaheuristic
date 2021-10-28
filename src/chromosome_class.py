@@ -1,13 +1,13 @@
 from copy import deepcopy
 from instance_class import Instance
 from solution_class import Solution
-from utils.errors import Error, InputError
 import numpy as np
 import matplotlib.pyplot as plt
 import random as rd
 
 import networkx as nx
 from utils.math_utils import dist, dist_point_to_list
+from utils.fifo_queue import put_item
 
 
 class Chromosome(Solution):
@@ -47,7 +47,7 @@ class Chromosome(Solution):
             plt.scatter(target[0], target[1], marker="+", color='red')
 
     def display(self, instance, uncovered_targets=None):
-        plt.figure(f"Solution of value {self.nb_captors}")
+        plt.figure(f"Solution of value {len(self.list_captors)}")
         self.draw_main_info(instance)
         if not self.valid and uncovered_targets is not None:
             self.draw_uncovered_targets(uncovered_targets)
@@ -222,6 +222,73 @@ class Chromosome(Solution):
                 self.captors_binary[i] = 1
         if (0, 0) in self.list_captors:
             self.captors_binary[-1] = 1
+
+    def tabu_search(self, size=3, max_iter=30):
+        """
+            Neighborhood with Hamming distance (edge if and only if distance == 1)
+        Args:
+            size (int) : size of the tabu list at each iteration
+            max_iter (int) : maximum number of iterations
+        """
+        Ecom = self.instance.neighbours_Rcom
+        list_tabu = list()
+        targets = self.instance.targets + [(0, 0)]
+
+        candidates = deepcopy(targets)  # points candidates for the modification (0 --> 1 or 1 --> 0)
+        i = 0
+        best_solution = [deepcopy(self.captors_binary), len(self.list_captors)]  # store the best current solution and its associated value
+        penalization = len(targets)  # big value to penalize infeasible solutions
+
+        while len(candidates) > 0 and i < max_iter:
+            # Chose the transformation to apply
+
+            # M1 : random
+            if i == 0:
+                random_index = rd.randint(0, len(candidates) - 1)
+                modif_target = candidates[random_index]
+                # modif_index = targets.index(modif_target)
+
+                neighbours = Ecom[modif_target]
+                candidates = deepcopy(neighbours)
+
+            # M2 : best neighbour
+
+            best_neighbour_solution = [len(self.list_captors) + 2 + penalization, None]
+            for target in candidates:
+                current_solution = deepcopy(self)
+                modif_index = targets.index(target)
+                current_solution.captors_binary[modif_index] = 1 - current_solution.captors_binary[modif_index]
+                current_solution.update_list_captors()
+
+                value = current_solution.value()
+                is_valid = current_solution.is_valid(self.instance)
+
+                if not is_valid:
+                    value += penalization
+
+                if value < best_neighbour_solution[0]:
+                    best_neighbour_solution = deepcopy([value, target])
+
+            modif_target = best_neighbour_solution[1]
+            modif_index = targets.index(modif_target)
+            value = best_neighbour_solution[0]
+
+            self.captors_binary[modif_index] = 1 - self.captors_binary[modif_index]
+            self.update_list_captors()
+
+            list_tabu = put_item(list_tabu, modif_target, size)
+            if value < best_solution[1]:
+                best_solution[0], best_solution[1] = self.captors_binary, value
+
+            neighbours = Ecom[modif_target]
+            candidates = deepcopy(neighbours)
+            for tabu_target in list_tabu:
+                if tabu_target in candidates:
+                    candidates.remove(tabu_target)
+
+            i += 1
+
+        return best_solution
 
 
 class TrivialSolutionRandomized(Chromosome):
