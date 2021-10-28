@@ -20,7 +20,7 @@ class AlgoGenetic:
         self.init_population(nb_initial_solutions)
 
         self.children = list()
-        self.nb_pairs = int(nb_initial_solutions / 4)
+        self.nb_pairs = int(nb_initial_solutions / 2)
 
         self.nb_parents_to_keep = int(nb_initial_solutions / 2) + 1
         self.nb_children_to_keep = nb_initial_solutions - self.nb_parents_to_keep
@@ -94,13 +94,45 @@ class AlgoGenetic:
             self.children.append(chromosome_1)
             self.children.append(chromosome_2)
 
+    # crossover operator
+    def disk_crossover(self, pairs):
+        radius_for_crossover = rd.randint(self.instance.Rcom, 3 * self.instance.Rcom)
+        neighbours = self.instance.neighbours_dict(radius_for_crossover)
+
+        for i in range(len(pairs)):
+            chromosome_1 = deepcopy(self.population[pairs[i][0]])
+            chromosome_2 = deepcopy(self.population[pairs[i][1]])
+
+            n = len(chromosome_1.captors_binary)
+
+            # Crossover for all targets within a randomly chosen disk
+            index_for_center = rd.randint(0, n - 1)  # within a circle around this point, we exchange
+            point_for_center = (self.instance.targets + [(0, 0)])[index_for_center]  # coordinate of this center
+            points_for_crossover = [points for points
+                                    in neighbours[point_for_center]]
+            indexes_for_crossover = [(self.instance.targets + [(0, 0)]).index(u) for u in points_for_crossover]
+
+            copy_chromosome_1 = deepcopy(chromosome_1.captors_binary)
+            for j in indexes_for_crossover:
+                chromosome_1.captors_binary[j] = chromosome_2.captors_binary[j]
+                chromosome_2.captors_binary[j] = copy_chromosome_1[j]
+
+            chromosome_1.update_list_captors()
+            chromosome_2.update_list_captors()
+
+            self.children.append(chromosome_1)
+            self.children.append(chromosome_2)
+
     # mutation operator
-    def mutation(self, proba=0.05):
+    def mutation(self, proba=0.1):
         for i in range(len(self.children)):
             print(self.children[i].captors_binary)
             r = rd.random
             if r < proba:
                 # TODO : mutation
+                # on fait un tabou au sein d'un disque random avec pénalisation si irréalisable (plutot que de rendre
+                # realisable c'est plus simple et de toute ca degage juste derriere)
+
                 print("Mutation done")
 
                 self.children[i].update_list_captors()
@@ -127,7 +159,7 @@ class AlgoGenetic:
             pairs = self.pair_selection()
 
             # Crossover step
-            self.two_points_crossover(pairs)
+            self.disk_crossover(pairs)
             for i in range(len(self.children)):
                 if not self.children[i].is_valid(self.instance):
                     self.children[i].reparation_heuristic(self.instance)
@@ -149,6 +181,9 @@ class AlgoGenetic:
             self.population += list(np.array(self.children)[best_children_indexes])
 
             self.children = list()
+
+            print(self.population[0].captors_binary)
+            print(self.population[1].captors_binary)
 
         print("\nEND")
         self.init_fitness_value(self.population)

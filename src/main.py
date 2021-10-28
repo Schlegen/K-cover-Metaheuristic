@@ -98,7 +98,7 @@ if __name__ == "__main__":
 #
 # # solution3 = TrivialSolutionRandomized(instance)
 #
-# 
+#
 # # solution2 = MinCostFlowMethod(instance)
 # # solution2.compute_flow()
 # # solution2.build_solution()

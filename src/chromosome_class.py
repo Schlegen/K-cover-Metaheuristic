@@ -37,6 +37,7 @@ class Chromosome(Solution):
                 elif instance.grid[i, j] == 2:
                     plt.scatter(i, j, marker="o", color='black')
 
+        # caution : we do not distinguish the origin if it has a captor on it ?
         for captor in self.list_captors:
             plt.scatter(captor[0], captor[1], marker="D", color='orange')
 

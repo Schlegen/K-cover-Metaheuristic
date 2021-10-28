@@ -4,10 +4,10 @@ from genetic_class import AlgoGenetic
 data_folder = "data/"
 data_file = data_folder + "grille1010_1.dat"
 
-instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1)
+instance = Instance.from_disk(data_file, Rcom=3, Rcapt=2)
 
 sol = AlgoGenetic(instance, nb_initial_solutions=16)
-sol.evolutionary_algorithm(nb_iter=40)
+sol.evolutionary_algorithm(nb_iter=15)
 exit()
 #
 # #instance.display()
