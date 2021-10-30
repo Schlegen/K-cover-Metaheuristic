@@ -42,7 +42,8 @@ def subgraph_is_connex(adj, subgraph):
     stack = [0]
     n = subgraph.size
     added_to_stack = np.zeros(subgraph.size, dtype=bool)
-    added_vertices = 0
+    added_to_stack[0] = True
+    added_vertices = 1
     while len(stack) > 0 and added_vertices < n:
         u = stack.pop()
         neighbours = np.argwhere(sub_adj[u].flatten()).flatten()
@@ -50,11 +51,40 @@ def subgraph_is_connex(adj, subgraph):
         idx_v = 0
         while idx_v < n_neighbours and added_vertices < n:
             v  = neighbours[idx_v]
-#            print("3", v, added_to_stack[v])
             if not added_to_stack[v]:
                 added_to_stack[v] = True
                 stack.append(v)
                 added_vertices += 1
             idx_v += 1
     return added_vertices == n
+
+def n_connex_components(adj, subgraph):
+    sub_adj = adj[np.ix_(subgraph, subgraph)]
+    stack = [0]
+    n = subgraph.size
+    added_to_stack = np.zeros(subgraph.size, dtype=bool)
+    added_to_stack[0] = True
+    added_vertices = 1
+    n_components = 1
+
+    while added_vertices < n:
+        while len(stack) > 0 and added_vertices < n:
+            u = stack.pop()
+            neighbours = np.argwhere(sub_adj[u].flatten()).flatten()
+            n_neighbours = neighbours.size
+            idx_v = 0
+            while idx_v < n_neighbours and added_vertices < n:
+                v  = neighbours[idx_v]
+                if not added_to_stack[v]:
+                    added_to_stack[v] = True
+                    stack.append(v)
+                    added_vertices += 1
+                idx_v += 1
+
+        if added_vertices < n: #on a parcouru une composante connexe qui n'est pas tout le graphe (donc stack est vide)
+            n_components += 1
+            stack.append(np.nonzero(added_to_stack)[0])
+
+    return n_components
+
 

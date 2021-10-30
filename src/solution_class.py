@@ -1,14 +1,15 @@
 from copy import deepcopy
-from numpy.lib.function_base import insert
+from operator import ne
+from numpy.lib.function_base import insert, select
 from instance_class import Instance
 from utils.errors import Error, InputError
-from utils.math_utils import subgraph_is_connex
+from utils.math_utils import subgraph_is_connex, n_connex_components
 import math as mh
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 import random as rd
-
+import time
 import networkx as nx
 from utils.math_utils import dist, dist_point_to_list
 
@@ -25,57 +26,30 @@ class Solution:
         self.list_captors = list_captors
 
     def is_valid(self, instance):
-        # TODO : l'améliorer pour qu'elle renvoie False très vite selon certains critères (nombre mini de capteurs par
-        # ex...) Et dans tous les cas lui faire renvoyer False avant la fin de la boucle quand il en est capable
-        # Par ex: au lieu de faire boucler sur tout puis compter, boucler uniquement sur les noeuds qui nous intéressent
-        # et retourner faux dès que y en a 1 qui est pas couvert
-
         """verifie que la solution respecte bien les contraintes de l'instance
 
         Args:
             instance (Instance): instance à laquelle correspond la solution
         """
-        void_grid = deepcopy(instance.grid)
 
-        Rmax = int(max(instance.Rcapt, instance.Rcom))
-
-        # on dispose les capteurs dans la grille :
+        self.solution = np.zeros(instance.n_targets+1, dtype=np.int64)
+        self.solution[0] = 1
         for captor in self.list_captors:
-            i, j = captor[0], captor[1]
-            if i < 0 or j < 0 or j > instance.n or j > instance.m or void_grid[i, j] == 0:
-                raise InputError(f"Solution invalide : On ne peut pas placer le capteur ({i},{j})")
-            else:
-                void_grid[captor[0], captor[1]] = 3
+            self.solution[instance.indexes[captor]] = 1
 
-        captors_to_treat = []  # liste des sommets qui communiquent avec le puits
-        n_covered_points = 0  # nombre de points couverts par les capteurs
+        self.coverage_vect = instance.k * np.ones(instance.n_targets+1, dtype=np.int64)
+        self.coverage_vect[0] = 0
 
-        # initialisation
-        for i in range(0, int(instance.Rcom)+1):
-            for j in range(0, int(instance.Rcom)+1):
-                if i < instance.n and j < instance.m and \
-                        mh.sqrt(i ** 2 + j ** 2) <= instance.Rcom and void_grid[i, j] == 3:
-                    captors_to_treat.append([i, j])
-                    n_covered_points += 1
-                    void_grid[i, j] = 0
+        for v in np.argwhere(self.solution.flatten()).flatten():
+            self.coverage_vect -= instance.E_capt[v].flatten()
 
-        # Pour chaque capteur de la liste
+        res = np.all(self.coverage_vect <= 0)
 
-        while len(captors_to_treat) > 0:
-            captor = captors_to_treat.pop()
-            for i in range(-Rmax, Rmax + 1):
-                for j in range(-Rmax, Rmax + 1):
-                    dist_to_captor = mh.sqrt(i ** 2 + j ** 2)
-                    if instance.n > captor[0] + i >= 0 and instance.m > captor[1] + j >= 0:
-                        if dist_to_captor <= instance.Rcapt and (void_grid[captor[0] + i, captor[1] + j] == 1 or void_grid[captor[0] + i, captor[1] + j] == 2):
-                            n_covered_points += 1
-                            void_grid[captor[0] + i, captor[1] + j] = 0
-                        elif dist_to_captor <= instance.Rcom and void_grid[captor[0] + i, captor[1] + j] == 3:
-                            captors_to_treat.append((captor[0] + i, captor[1] + j))
-                            n_covered_points += 1
-                            void_grid[captor[0] + i, captor[1] + j] = 0
-        self.valid = n_covered_points == instance.n * instance.m - instance.n_deleted_points
-        return self.valid
+        if not res:
+            self.valid = False
+        
+        else:
+            self.valid = subgraph_is_connex(instance.E_com, np.argwhere(self.solution).flatten())
 
     def value(self):
         return len(self.list_captors)
@@ -104,7 +78,6 @@ class Solution:
             self.draw_uncovered_targets(uncovered_targets)
         plt.show()
 
-
 class TrivialSolution(Solution):
 
     def __init__(self, instance):
@@ -125,7 +98,6 @@ class TrivialSolution(Solution):
             else:
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
-
 
 class TrivialSolutionRandomized0(Solution):
 
@@ -170,93 +142,70 @@ class TrivialSolutionRandomized0(Solution):
             
         return 0
 
-
-class TabuSearch(Solution):
+class LocalSearch(Solution):
 
     def __init__(self, instance):
-
-        # classement des sommets
-        self.indexes = {e : i+1 for i,e in enumerate(sorted(instance.targets))}
-        self.indexes[(0, 0)] = 0
-
-        self.reversed_indexes = {i+1 : e for i,e in enumerate(sorted(instance.targets))}
-        self.reversed_indexes[0] = (0, 0)
-
-        # construction de la matrice d'adjacence de captation
-        capt_neighbours = instance.neighbours(instance.Rcapt, take_origin=False)
-        self.E_capt = np.zeros((instance.n_targets+1, instance.n_targets+1), dtype=np.int8)
-        for arc in capt_neighbours:
-            self.E_capt[self.indexes[arc[0]], self.indexes[arc[1]]] = 1
-
-        # construction de la matrice d'adjacence de communication
-        com_neighbours = instance.neighbours(instance.Rcom, take_origin=True)
-        self.E_com = np.zeros((instance.n_targets+1, instance.n_targets+1), dtype=np.int8)
-        for arc in com_neighbours:
-            self.E_com[self.indexes[arc[0]], self.indexes[arc[1]]] = 1
-
+        self.instance = instance
         #construction de la matrice d'adjacence de 
-        self.captors = []
+        self.list_captors = []
 
-    def GenerateInitialSolution(self, instance):
+    def GenerateInitialSolution(self):
         self.list_captors = []
         
-        solution = np.zeros(instance.n_targets+1, dtype=np.int64)
-        solution[0] = 1
+        self.solution = np.zeros(self.instance.n_targets+1, dtype=np.int64)
+        self.solution[0] = 1
 
         #tableau notant le nombre de capteurs manquant à chaque cible (peut être négatif en cas d'exces)
-        coverage_vect = instance.k * np.ones(instance.n_targets+1, dtype=np.int64)
-        coverage_vect[0] = 0
+        self.coverage_vect = self.instance.k * np.ones(self.instance.n_targets+1, dtype=np.int64)
+        self.coverage_vect[0] = 0
 
-        n = 0
+        while np.any(self.coverage_vect > 0):
 
-        while np.any(coverage_vect > 0):
-
-            n += 1
-
-            remaining_degrees_com = ((1 - solution.reshape(1, instance.n_targets+1)) @ self.E_com).flatten()
-            remaining_degrees_capt = (np.minimum(1, np.maximum(0, coverage_vect.reshape(1, instance.n_targets+1))) @ self.E_capt).flatten()
+            remaining_degrees_com = ((1 - self.solution.reshape(1, self.instance.n_targets+1)) @ self.instance.E_com).flatten()
+            remaining_degrees_capt = (np.minimum(1, np.maximum(0, self.coverage_vect.reshape(1, self.instance.n_targets+1))) @ self.instance.E_capt).flatten()
             remaining_degrees = remaining_degrees_com + remaining_degrees_capt
 
-            connex_neighbours = np.minimum(1, (solution.reshape(1, instance.n_targets+1) @ self.E_com).flatten())
-            selected_captor = np.argmax(connex_neighbours * remaining_degrees * (1 - solution))
-            solution[selected_captor] = 1
+            connex_neighbours = np.minimum(1, (self.solution.reshape(1, self.instance.n_targets+1) @ self.instance.E_com).flatten())
+            selected_captor = np.argmax(connex_neighbours * remaining_degrees * (1 - self.solution))
+            self.solution[selected_captor] = 1
 
             # mise à jour des sommets captés
-            for j in range(instance.n_targets+1):
-                if self.E_capt[selected_captor, j] == 1:# and coverage_vect[j] > 0:
-                    coverage_vect[j] -= 1
+            self.coverage_vect -= self.instance.E_capt[selected_captor].flatten()
 
+        for u in np.argwhere(self.solution).flatten():
+            self.list_captors.append(self.instance.reversed_indexes[u])
+
+    def improve_solution(self):
+        self.list_captors = []
         # suppression des capteurs que l'on peut enlever (algo glouton)
-        for u in np.argwhere(solution).flatten():
+        for u in np.argwhere(self.solution).flatten():
             if u > 0:
-                
                 can_remove = True
     
                 # on regarde si les cibles captées seraient suffisemment captées sans le capteur
-                list_capt = np.argwhere(self.E_capt[u].flatten()).flatten()
+                list_capt = np.argwhere(self.instance.E_capt[u].flatten()).flatten()
                 n_capted = len(list_capt)
                 i = 0
                 while (i < n_capted) and can_remove:
                     v = list_capt[i]
-                    can_remove = coverage_vect[v] < 0
+                    can_remove = self.coverage_vect[v] < 0
                     i += 1
 
                 # ensuite on regarde si la connexité est conservée
-                solution_without_u = deepcopy(solution)
+                solution_without_u = deepcopy(self.solution)
                 solution_without_u[u] = 0
-                can_remove = can_remove and subgraph_is_connex(self.E_com, np.argwhere(solution_without_u).flatten())
+                can_remove = can_remove and subgraph_is_connex(self.instance.E_com, np.argwhere(solution_without_u).flatten())
 
                 # on enleve les sommets et on met à jour les sommets captés
                 if can_remove:
-                    solution[u] = 0
+                    self.solution[u] = 0
                     for target in list_capt:
-                        coverage_vect[target] += 1
+                        self.coverage_vect[target] += 1
 
                 else:
-                    self.list_captors.append(self.reversed_indexes[u])
+                    self.list_captors.append(self.instance.reversed_indexes[u])
 
-    @classmethod
-    def delete_capt(cls, solution, coverage_vect, v):
+    def delete_capt(self, solution, coverage_vect, v):
         """ supprime un capteur et met à jour la solution associée
         s'assurer qu'un capteur est bien placé à l'indice correspondant
 
@@ -269,10 +218,9 @@ class TabuSearch(Solution):
         """
 
         solution[v] = 0
-        # coverage_vect[target] -= self.E_capt[v].flatten()
+        coverage_vect -= self.instance.E_capt[v].flatten()
 
-    @classmethod
-    def add_capt(cls, solution, coverage_vect, v):
+    def add_capt(self, solution, coverage_vect, v):
         """ ajoute un capteur et met à jour la solution associée
         s'assurer qu'aucun capteur n'est placé à l'indice correspondant
 
@@ -285,10 +233,9 @@ class TabuSearch(Solution):
         """
 
         solution[v] = 1
-        # coverage_vect[target] += self.E_capt[v].flatten()
+        coverage_vect += self.instance.E_capt[v].flatten()
 
-    @classmethod
-    def exchange11(cls, solution, coverage_vect, v_out, v_in):
+    def exchange11(self, solution, coverage_vect, v_out, v_in):
         """ transformation deplace un capteur en v_in vers v_out
             il faut s'assurer en amont que la solution possede un capteur en v_out et pas en v_in
 
@@ -300,11 +247,10 @@ class TabuSearch(Solution):
 
         modifie solution et coverage_vect
         """
-        cls.delete_capt(solution, coverage_vect, v_out)
-        cls.add_capt(solution, coverage_vect, v_in)
+        self.delete_capt(solution, coverage_vect, v_out)
+        self.add_capt(solution, coverage_vect, v_in)
 
-    @classmethod
-    def exchange22(cls, solution, coverage_vect, v_out1, v_out2, v_in1, v_in2):
+    def exchange22(self, solution, coverage_vect, v_out1, v_out2, v_in1, v_in2):
         """ transformation deplace deux capteurs de v_out1 et v_out2 vers v_in1, v_in2
             il faut s'assurer en amont que la solution possede des capteur en v_out1 et v_out2 et pas en v_in1 ni v_in2
 
@@ -317,19 +263,73 @@ class TabuSearch(Solution):
         modifie solution et coverage_vect
         """
 
-        cls.delete_capt(solution, coverage_vect, v_out1)
-        cls.delete_capt(solution, coverage_vect, v_out2)
-        cls.add_capt(solution, coverage_vect, v_in1)
-        cls.add_capt(solution, coverage_vect, v_in2)
+        self.delete_capt(solution, coverage_vect, v_out1)
+        self.delete_capt(solution, coverage_vect, v_out2)
+        self.add_capt(solution, coverage_vect, v_in1)
+        self.add_capt(solution, coverage_vect, v_in2)
 
-    @classmethod
-    def exchange21(cls, solution, coverage_vect, v_out1, v_out2, v_in1):
-        cls.delete_capt(solution, coverage_vect, v_out1)
-        cls.delete_capt(solution, coverage_vect, v_out2)
-        cls.add_capt(solution, coverage_vect, v_in1)
+    def exchange21(self, solution, coverage_vect, v_out1, v_out2, v_in1):
+        self.delete_capt(solution, coverage_vect, v_out1)
+        self.delete_capt(solution, coverage_vect, v_out2)
+        self.add_capt(solution, coverage_vect, v_in1)
 
-    def search(self, n_max, initial_solution):
-        ()
+    def exchange12(self, solution, coverage_vect, v_out1, v_in1, v_in2):
+        self.delete_capt(solution, coverage_vect, v_out1)
+        self.add_capt(solution, coverage_vect, v_in1)
+        self.add_capt(solution, coverage_vect, v_in2)
 
-    def best_in_neighbourhood(self, n_neighbours):
-        ()
+    def fitness_solution(self, solution, coverage_vect, pen_capt, pen_connexity):
+        return np.sum(solution) + pen_capt * np.linalg.norm(np.maximum(0, np.coverage_matrix), ord=1) + pen_connexity * n_connex_components(self.instance.E_com, solution)
+
+    def best_in_neighbourhood(self, n_neighbours, p11, p22, p21):
+        # p12 = 1 - p11 - p21 - p12 
+        # peut bugguer si on ne peut pas choisir les sommets hors et dans l'arbre
+        best_fitness = np.inf
+        for i in range(n_neighbours):
+            new_solution = deepcopy(self.solution)
+            new_coverage = deepcopy(self.coverage_matrix)
+
+            choice = np.random.choice(np.arrange(1, 5), [p11, p22, p21, 1 - p11 - p22 - p21])
+
+            if choice == 1:
+                v_out = np.random.choice(np.argwhere(self.solution[1:])) + 1
+                v_in = np.random.choice(1 - np.argwhere(self.solution[1:])) + 1
+                self.exchange11(new_solution, new_coverage, v_out, v_in)
+
+            elif choice == 2:
+                v_out = np.random.choice(np.argwhere(self.solution[1:]), 2, replace=False) + 1
+                v_in = np.random.choice(1 - np.argwhere(self.solution[1:]), 2, replace=False) + 1
+                self.exchange22(new_solution, new_coverage, v_out[0], v_out[1], v_in[0], v_in[1])
+
+            elif choice == 3:
+                v_out = np.random.choice(np.argwhere(self.solution[1:]), 2, replace=False) + 1
+                v_in = np.random.choice(1 - np.argwhere(self.solution[1:])) + 1
+                self.exchange21(new_solution, new_coverage, v_out[0], v_out[1], v_in)
+
+            else:
+                v_out = np.random.choice(np.argwhere(self.solution[1:])) + 1
+                v_in = np.random.choice(1 - np.argwhere(self.solution[1:]), 2, replace=False) + 1
+                self.exchange12(new_solution, new_coverage, v_out, v_in[0], v_in[1])
+
+            new_fitness = self.fitness_solution(new_solution, new_coverage)
+
+            if new_fitness < best_fitness:
+                best_solution = deepcopy(new_solution)
+                best_coverage = deepcopy(new_coverage)
+                best_fitness = new_fitness
+            
+        return best_solution, best_coverage, best_fitness
+
+class TabuSearch(LocalSearch):
+    def __init__(self,instance):
+        super().__init__(instance)
+
+    def search(self, n_max_without_improvement, time_limit):
+        self.GenerateInitialSolution()
+        self.improve_solution()
+        begin = time.time()
+
+        while time.time() - begin < time_limit:
+            ()
+
+

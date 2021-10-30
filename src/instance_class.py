@@ -35,6 +35,25 @@ class Instance:
         self.neighbours_Rcapt = self.neighbours_dict(Rcapt)
         self.neighbours_Rcom = self.neighbours_dict(Rcom)
 
+        #utilisés dans la classe tabou
+        self.indexes = {e : i+1 for i,e in enumerate(sorted(self.targets))}
+        self.indexes[(0, 0)] = 0
+
+        self.reversed_indexes = {i+1 : e for i,e in enumerate(sorted(self.targets))}
+        self.reversed_indexes[0] = (0, 0)
+
+        # construction de la matrice d'adjacence de captation
+        capt_neighbours = self.neighbours(self.Rcapt, take_origin=False)
+        self.E_capt = np.zeros((self.n_targets+1, self.n_targets+1), dtype=np.int8)
+        for arc in capt_neighbours:
+            self.E_capt[self.indexes[arc[0]], self.indexes[arc[1]]] = 1
+
+        # construction de la matrice d'adjacence de communication
+        com_neighbours = self.neighbours(self.Rcom, take_origin=True)
+        self.E_com = np.zeros((self.n_targets+1, self.n_targets+1), dtype=np.int8)
+        for arc in com_neighbours:
+            self.E_com[self.indexes[arc[0]], self.indexes[arc[1]]] = 1
+
     @classmethod
     def from_disk(cls, data_file, Rcapt=1, Rcom=1, k=1):
         captors_to_delete, size = extract_points(data_file)

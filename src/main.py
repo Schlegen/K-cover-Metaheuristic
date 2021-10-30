@@ -1,5 +1,5 @@
 from instance_class import Instance
-from solution_class import Solution, TrivialSolution, TrivialSolutionRandomized0, TabuSearch
+from solution_class import Solution, TrivialSolution, TrivialSolutionRandomized0, LocalSearch
 import time
 from utils.errors import InputError
 from bounds import MilpApproach
@@ -55,8 +55,8 @@ if __name__ == "__main__":
     elif mode == "tabu":
 
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k)
-        tabu = TabuSearch(instance)
-        tabu.GenerateInitialSolution(instance)
+        tabu = LocalSearch(instance)
+        tabu.GenerateInitialSolution()
         tabu.is_valid(instance)
         tabu.display(instance)
         print("resultat tabu : ", tabu.value())
