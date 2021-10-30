@@ -7,7 +7,7 @@ data_folder = "data/"
 data_file = data_folder + "grille1010_1.dat"
 start = time.time()
 
-instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1)
+instance = Instance.from_disk(data_file, Rcom=2, Rcapt=2)
 
 test_tabu_only = False
 if test_tabu_only:
@@ -21,8 +21,8 @@ if test_tabu_only:
     # SINON, idee : au lieu de faire des changements 1 par 1, faire 2 par 2
 
 else:
-    sol = AlgoGenetic(instance, nb_initial_solutions=16)
-    sol.evolutionary_algorithm(nb_iter=15)
+    sol = AlgoGenetic(instance, nb_initial_solutions=8)
+    sol.evolutionary_algorithm(nb_iter=10)
 
 
 end = time.time()

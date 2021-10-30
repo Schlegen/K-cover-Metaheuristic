@@ -12,18 +12,21 @@ from utils.fifo_queue import put_item
 
 class Chromosome(Solution):
     def __init__(self, instance, list_captors):
-        """constructeur de la classe Chromosome
+        """Class for Chromosome object
 
         Args:
+            instance (Instance) : instance we want to optimize
             list_captors (list of tuples): liste des coordonnées des capteurs dans la solution
         """
         super().__init__(list_captors)
-        self.instance = instance
+        self.instance = instance  # Instance to solve (targets coordinates, k, Rcom, Rcapt, ...)
         self.valid = False
-        self.list_captors = list_captors
-        self.captors_binary = list()
+        self.penalization = 0  # when solution is infeasible, we add a penalization
+        self.list_captors = list_captors  # first representation of the information on captors : list of coordinates
+        self.captors_binary = list()  # second representation : binary list of length len(instance.targets) + 1
+
         self.fitness_value = 0
-        self.nb_captors = None
+        self.nb_captors = None  # always = len(self.list_captors)
 
     def value(self):
         return len(self.list_captors)
@@ -46,9 +49,11 @@ class Chromosome(Solution):
         for target in targets:
             plt.scatter(target[0], target[1], marker="+", color='red')
 
-    def display(self, instance, uncovered_targets=None):
-        plt.figure(f"Solution of value {len(self.list_captors)}")
+    def display(self, instance, uncovered_targets=None, mark_red=None):
+        plt.figure(f"Solution of value {len(self.list_captors) + self.penalization}")
         self.draw_main_info(instance)
+        if mark_red:
+            plt.scatter(mark_red[0], mark_red[1], marker="+", color='red')
         if not self.valid and uncovered_targets is not None:
             self.draw_uncovered_targets(uncovered_targets)
         plt.show()
@@ -89,14 +94,13 @@ class Chromosome(Solution):
         """
         self.disk_graph_captors(instance)
         connected_components = nx.connected_components(self.disk_graph_com)
-        # print("Captors")
-        # print(self.list_captors)
-        # print("Connected components")
         connected_components = [[e for e in c] for c in connected_components]
-        # print(connected_components)
         return connected_components
 
     def find_not_covered_targets(self, instance):
+        """
+            Return the list of targets that are not sufficiently covered (captors < k)
+        """
         not_covered = []
         self.disk_graph_targets(instance)
         targets_cover = self.disk_graph_capt.in_degree
@@ -107,12 +111,37 @@ class Chromosome(Solution):
         return not_covered
 
     def check_with_disk_graph(self, instance):
+        """ Check if the solution is feasible, using disk graphs
+            Warning : this method is quite expensive (time + memory)"""
         not_covered_targets = self.find_not_covered_targets(instance)
         connected_components = self.find_connected_components(instance)
-        self.valid = len(not_covered_targets) == 0 and len(connected_components) == 1
-        return self.valid
+        return len(not_covered_targets) == 0 and len(connected_components) == 1
+
+    def penalize_infeasibility(self):
+        self.disk_graph_captors(self.instance)
+        connected_components = nx.connected_components(self.disk_graph_com)
+        nb_connected_components = len([c for c in connected_components])
+
+        self.disk_graph_targets(self.instance)
+        targets_cover = self.disk_graph_capt.in_degree
+        nb_uncovered_targets = 0
+        for target in targets_cover:
+            nb_uncovered_targets += max(self.instance.k - target[1], 0)
+
+        # nb_uncovered_targets = len(self.find_not_covered_targets(self.instance))
+        # nb_connected_components = len(self.find_connected_components(self.instance))
+        return nb_uncovered_targets + (nb_connected_components - 1) * int(4 / self.instance.Rcom)
 
     def find_best_candidate_connectivity(self, instance, connected_components):
+        """
+            Method used for the Reparation Heuristic
+        Args:
+            instance (Instance)
+            connected_components (list of list of tuples) : list of list of captors (represented with their 2D
+                coordinates). Each list of captors is a connected component.
+        Returns:
+            The "best" target where to put a captor, in order to try to make the solution connected (in terms of comm)
+        """
         E_com = instance.neighbours_Rcom
 
         n_components = len(connected_components)
@@ -120,7 +149,7 @@ class Chromosome(Solution):
 
         if n_components > 1:
             for i in range(n_components):
-                # S'il ne s'agit pas de la composante contenant l'origine
+                # If it is not the component containing the origin
                 if (0, 0) in connected_components[i]:
                     i_origin = i
             for i in range(n_components):
@@ -165,19 +194,18 @@ class Chromosome(Solution):
 
     def reparation_heuristic(self, instance, verbose=False):
         """
-            Implementation d'une heuristique de reparation
+            Implementation of a Reparation Heuristic
         """
 
         not_covered_targets = self.find_not_covered_targets(instance)
         if verbose:
             print("")
             print(f"The current solution has {len(not_covered_targets)} targets which are not sufficiently covered.")
-        # self.display(instance, not_covered_targets)
 
-        # init with the farthest captor from the origin (for version 1 only)
+        # Init with the farthest captor from the origin (for version 1 only)
         # v = dist_point_to_list((0, 0), self.list_captors)[-1][1]
 
-        # Tant que des cibles ne sont pas captées
+        # While there are targets which are not k-covered
         while len(not_covered_targets) > 0:
             # v = self.find_best_candidate_covering(instance, v)
             v = self.find_best_candidate_covering_v2(not_covered_targets)
@@ -191,10 +219,8 @@ class Chromosome(Solution):
         if verbose:
             print(f"The current solution has {len(connected_components)} unconnected groups of captors.")
 
-        # Si la solution non connexe
-        # On parcourt les composantes connexes des capteurs (sauf celle qui contient (0,0) ), et on les rend connexes
-        # à celle qui contient (0, 0)
-
+        # If solution is not connected
+        # We go through all components (except the one containing (0,0)) and make them connected
         while len(connected_components) > 1:
             v = self.find_best_candidate_connectivity(instance, connected_components)
             self.list_captors.append(v)
@@ -207,6 +233,7 @@ class Chromosome(Solution):
         self.update_captors_binary()
 
     def update_list_captors(self):
+        """When the binary representation of the captors has been updated but not the list one, we update it manually"""
         self.list_captors = list()
         for i in range(len(self.captors_binary) - 1):
             if int(self.captors_binary[i]) == 1:
@@ -215,6 +242,7 @@ class Chromosome(Solution):
             self.list_captors.append((0, 0))
 
     def update_captors_binary(self):
+        """When the list representation of the captors has been updated but not the binary one, we update it manually"""
         n = len(self.instance.targets)
         self.captors_binary = [0 for k in range(n + 1)]  # + 1 for the origin
         for i in range(n):
@@ -225,19 +253,19 @@ class Chromosome(Solution):
 
     def tabu_search(self, size=3, max_iter=30):
         """
-            Neighborhood with Hamming distance (edge if and only if distance == 1)
+            Neighborhood with Hamming distance : uv edge if and only if distance(u,v) == 1
         Args:
             size (int) : size of the tabu list at each iteration
             max_iter (int) : maximum number of iterations
         """
-        Ecom = self.instance.neighbours_Rcom
+        Ecom = self.instance.neighbours_dict(self.instance.Rcom)
         list_tabu = list()
         targets = self.instance.targets + [(0, 0)]
 
         candidates = deepcopy(targets)  # points candidates for the modification (0 --> 1 or 1 --> 0)
         i = 0
-        best_solution = [deepcopy(self.captors_binary), len(self.list_captors)]  # store the best current solution and its associated value
-        penalization = len(targets)  # big value to penalize infeasible solutions
+        # store the best current solution and its associated value + penalization
+        best_solution = [deepcopy(self.captors_binary), len(self.list_captors), self.penalization]
 
         while len(candidates) > 0 and i < max_iter:
             # Chose the transformation to apply
@@ -251,9 +279,8 @@ class Chromosome(Solution):
                 neighbours = Ecom[modif_target]
                 candidates = deepcopy(neighbours)
 
-            # M2 : best neighbour
-
-            best_neighbour_solution = [len(self.list_captors) + 2 + penalization, None]
+            # M2 : best neighbour : (nb_captors, target_modified, penalization)
+            best_neighbour_solution = [len(self.instance.targets) + 2, None, 0]
             for target in candidates:
                 current_solution = deepcopy(self)
                 modif_index = targets.index(target)
@@ -262,23 +289,28 @@ class Chromosome(Solution):
 
                 value = current_solution.value()
                 is_valid = current_solution.is_valid(self.instance)
-
+                pen = 0
                 if not is_valid:
-                    value += penalization
+                    pen = current_solution.penalize_infeasibility()
 
-                if value < best_neighbour_solution[0]:
-                    best_neighbour_solution = deepcopy([value, target])
+                if value + pen < best_neighbour_solution[0] + best_neighbour_solution[2]:
+                    best_neighbour_solution[0] = value
+                    best_neighbour_solution[1] = target
+                    best_neighbour_solution[2] = pen
 
             modif_target = best_neighbour_solution[1]
             modif_index = targets.index(modif_target)
-            value = best_neighbour_solution[0]
-
+            best_neighbour_value = best_neighbour_solution[0]
+            best_neighbour_pen = best_neighbour_solution[2]
+            # self.display(self.instance, mark_red=modif_target)
             self.captors_binary[modif_index] = 1 - self.captors_binary[modif_index]
             self.update_list_captors()
 
             list_tabu = put_item(list_tabu, modif_target, size)
-            if value < best_solution[1]:
-                best_solution[0], best_solution[1] = self.captors_binary, value
+            if best_neighbour_value + best_neighbour_pen < best_solution[1] + best_solution[2]:
+                best_solution[0] = deepcopy(self.captors_binary)
+                best_solution[1] = best_neighbour_value
+                best_solution[2] = best_neighbour_pen
 
             neighbours = Ecom[modif_target]
             candidates = deepcopy(neighbours)
@@ -292,12 +324,14 @@ class Chromosome(Solution):
 
 
 class TrivialSolutionRandomized(Chromosome):
+    """ Heuristic to generate a Randomized Trivial Solution.
+        Used to get an initial population for the evolutionary algorithm"""
     def __init__(self, instance):
         super().__init__(instance, list_captors=None)
         # We consider the trivial solution : all targets get a captor
         self.list_captors = deepcopy(instance.targets)
         np.random.shuffle(self.list_captors)  # shuffle the list of captors
-        n = len(instance.targets)
+        n = len(instance.targets) // 3
         n_captors_deleted = 0
         for i in range(n):
             last_captors_valid = deepcopy(self.list_captors)

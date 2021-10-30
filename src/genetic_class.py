@@ -9,21 +9,23 @@ import matplotlib.pyplot as plt
 
 class AlgoGenetic:
     def __init__(self, instance, nb_initial_solutions=8):
-        """constructeur de la classe pour l'algo evolutionnaire
+        """Class for Evolutionary Algorithm Method
         Args:
-
+            instance (Instance) : instance we want to optimize
+            nb_initial_solutions (int) : size of the initial population
         """
-        self.instance = instance
-        self.population = list()
-        self.fitness_values = list()
-        self.cumulative_fitness_values = list()
-        self.init_population(nb_initial_solutions)
+        self.instance = instance  # Instance to solve (targets coordinates, k, Rcom, Rcapt, ...)
+        self.population = list()  # Population at each iteration : List of chromosomes
+        self.init_population(nb_initial_solutions)  # Initialize the population with an Heuristic
 
-        self.children = list()
-        self.nb_pairs = int(nb_initial_solutions / 2)
+        self.fitness_values = list()  # For pairs selection AND population update
+        self.cumulative_fitness_values = list()  # For Roulette Wheel Selection
 
-        self.nb_parents_to_keep = int(nb_initial_solutions / 4) + 1
-        self.nb_children_to_keep = nb_initial_solutions - self.nb_parents_to_keep
+        self.children = list()  # Children at each iteration : List of chromosomes
+        self.nb_pairs = int(nb_initial_solutions / 2)  # Nb of pairs of parents chosen at each iteration (for crossover)
+
+        self.nb_parents_to_keep = int(nb_initial_solutions / 4) + 1  # Nb of parents we keep at population update
+        self.nb_children_to_keep = nb_initial_solutions - self.nb_parents_to_keep  # Nb of children we keep
 
     def init_population(self, n):
         for k in range(n):
@@ -37,13 +39,19 @@ class AlgoGenetic:
         sum_values = 0
         for i in range(n):
             population[i].nb_captors = population[i].value()
+            population[i].nb_captors += population[i].penalization
             sum_values += population[i].nb_captors
 
         for i in range(n):
             chromosome = population[i]
             self.fitness_values[i] = chromosome.nb_captors / sum_values
 
-        self.cumulative_fitness_values = np.cumsum(np.array(self.fitness_values))
+        # Small values => good solution => bigger probability to be chosen
+        probabilities = (1 - np.array(self.fitness_values))
+        probabilities = probabilities / np.sum(probabilities)
+        self.cumulative_fitness_values = np.cumsum(probabilities)
+
+        return population
 
     # selection operator
     def roulette_wheel_selection(self):
@@ -55,24 +63,30 @@ class AlgoGenetic:
     def pair_selection(self):
         assert(self.nb_pairs <= len(self.population) / 2)
         pairs = list()
-        selected_chromosomes = list()
         for i in range(self.nb_pairs):
             selected_1 = self.roulette_wheel_selection()
-            while selected_1 in selected_chromosomes:
-                selected_1 = self.roulette_wheel_selection()
-            selected_chromosomes.append(selected_1)
-
             selected_2 = self.roulette_wheel_selection()
-            while selected_2 in selected_chromosomes:
+            while selected_2 == selected_1:
                 selected_2 = self.roulette_wheel_selection()
-            selected_chromosomes.append(selected_2)
-
             pairs.append((selected_1, selected_2))
+
+            # M1
+            # selected_1 = self.roulette_wheel_selection()
+            # while selected_1 in selected_chromosomes:
+            #     selected_1 = self.roulette_wheel_selection()
+            # selected_chromosomes.append(selected_1)
+            #
+            # selected_2 = self.roulette_wheel_selection()
+            # while selected_2 in selected_chromosomes:
+            #     selected_2 = self.roulette_wheel_selection()
+            # selected_chromosomes.append(selected_2)
+            #
+            # pairs.append((selected_1, selected_2))
 
         return pairs
 
     # crossover operator
-    def two_points_crossover(self, pairs):
+    def one_point_crossover(self, pairs):
         for i in range(len(pairs)):
             chromosome_1 = deepcopy(self.population[pairs[i][0]])
             chromosome_2 = deepcopy(self.population[pairs[i][1]])
@@ -125,23 +139,18 @@ class AlgoGenetic:
             self.children.append(chromosome_2)
 
     # mutation operator
-    def mutation(self, proba=0.3):
+    def mutation(self, proba=0.2):
         for i in range(len(self.children)):
-            # print(f"Before mutation : value {len(self.children[i].list_captors)}")
-            # print(self.children[i].captors_binary)
             r = rd.random()
             if r < proba:
-                # on fait un tabou avec voisin = disque Rcom avec pénalisation si irréalisable
-                solution, value = self.children[i].tabu_search(size=8, max_iter=30)
-                # print(f"After mutation : value {value}")
-                # print(solution)
-
-                self.children[i].captors_binary = deepcopy(solution)
+                solution_binary, value, pen = self.children[i].tabu_search(size=8, max_iter=16)
+                self.children[i].captors_binary = deepcopy(solution_binary)
                 self.children[i].update_list_captors()
+                self.children[i].penalization = pen
 
     def compute_diversity_population(self):
         """ Compute the mean of the standard deviation between each solution of the population.
-            Use to detect if the population has stabilized around an almost fixed solution"""
+            Used to detect if the population has stabilized around an almost fixed solution"""
         solutions = np.array([self.population[i].captors_binary for i in range(len(self.population))])
         standard_deviation_mean = np.mean(np.std(solutions, axis=0))
         return standard_deviation_mean
@@ -155,11 +164,14 @@ class AlgoGenetic:
             self.cumulative_fitness_values = list()
 
             # Compute the fitness function for all the population
-            self.init_fitness_value(self.population)
+            self.population = deepcopy(self.init_fitness_value(self.population))
 
             values = [self.population[i].nb_captors for i in range(len(self.population))]
+            pen = [self.population[i].penalization for i in range(len(self.population))]
+
             print(f"\n=== [ {iteration} / {nb_iter} ] ===")
             print(values)
+            print(pen)
             solutions_values.append(values)
 
             # Roulette wheel selection
@@ -168,34 +180,49 @@ class AlgoGenetic:
             # Crossover step
             self.disk_crossover(pairs)
             for i in range(len(self.children)):
+                self.children[i].penalization = 0
                 if not self.children[i].is_valid(self.instance):
-                    self.children[i].reparation_heuristic(self.instance)
+                    # self.children[i].reparation_heuristic(self.instance)
+                    self.children[i].penalization = self.children[i].penalize_infeasibility()
 
             # Mutation step
             self.mutation()
-            # for i in range(len(self.children)):
-            #     if not self.children[i].is_valid():
-            #         self.children[i].reparation_heuristic(self.instance)
 
             # Population update
             best_parents_indexes = np.array(self.fitness_values).argsort()[:self.nb_parents_to_keep]
             self.population = deepcopy(list(np.array(self.population)[best_parents_indexes]))
 
-            # M2 : try to select best children with roulette ?
             self.fitness_values = list()
-            self.init_fitness_value(self.children)
+            self.children = deepcopy(self.init_fitness_value(self.children))
             best_children_indexes = np.array(self.fitness_values).argsort()[:self.nb_children_to_keep]
+
             self.population += list(np.array(self.children)[best_children_indexes])
 
             self.children = list()
 
-        self.init_fitness_value(self.population)
+        self.population = deepcopy(self.init_fitness_value(self.population))
         values = [self.population[i].nb_captors for i in range(len(self.population))]
+        pen = [self.population[i].penalization for i in range(len(self.population))]
         print(f"\n=== [ {nb_iter} / {nb_iter} ] ===")
         print(values)
+        print(pen)
         solutions_values.append(values)
 
         print(f"Mean std : {self.compute_diversity_population()}")
+
+        # After last iteration, fix infeasible solutions AND optimize feasible ones (remove irrelevant captors)
+        for i in range(len(self.population)):
+            if self.population[i].penalization > 0:
+                self.population[i].reparation_heuristic(self.instance)
+                self.population[i].penalization = self.population[i].penalize_infeasibility()
+
+        self.population = deepcopy(self.init_fitness_value(self.population))
+        values = [self.population[i].nb_captors for i in range(len(self.population))]
+        pen = [self.population[i].penalization for i in range(len(self.population))]
+        print(f"\n=== [ {nb_iter} / {nb_iter} ] ===")
+        print(values)
+        print(pen)
+        solutions_values.append(values)
 
         min_values = np.min(np.array(solutions_values), axis=1)
         max_values = np.max(np.array(solutions_values), axis=1)
@@ -212,14 +239,18 @@ class AlgoGenetic:
         plt.show()
 
         best_solution_index = int(np.argmin(self.fitness_values))
+
         self.population[best_solution_index].display(self.instance)
 
 
 # Parameters to vary
-## initial population
-## nb max iterations
-## proportion parents / children to keep at each iteration
-## size of disk for crossover
-## proba for mutation
-## nb max iterations for tabou
-## size tabu list
+# transformation in tabu : change 1 bit => change 2 bits ? (bcp plus couteux attention!)
+
+
+# TEST :
+# remove reparation heuristic : now we keep invalid solutions but penalize them depending of its degree of infeasibility
+# faire des mutations à 2 ou 3 ou 4 d'un coup
+
+# todo
+# list hyper parameters and name them (attributes class)
+
