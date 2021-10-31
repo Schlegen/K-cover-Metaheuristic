@@ -378,8 +378,8 @@ class LocalSearch(Solution):
 
     def search(self, iter_max, time_limit, n_neighbours):
         solution, coverage_vect = self.GenerateInitialSolution() # solution realisable
-        # self.improve_solution(solution, coverage_vect)
-        print("initial_coverage", coverage_vect)
+        self.improve_solution(solution, coverage_vect)
+        # print("initial_coverage", coverage_vect)
         tab_best_solution_value = []
         tab_best_neighbour_fitness = []
         n_iter = 0
@@ -390,48 +390,56 @@ class LocalSearch(Solution):
         best_coverage = deepcopy(coverage_vect)
         best_fitness = np.sum(best_solution) - 1
 
+        list_transfo = []
+
         # print("to", self.fitness_solution(best_solution, best_coverage), best_fitness)
-        current_solution, current_coverage, current_fitness = self.deteriorate_solution(best_solution, best_coverage, n_neighbours)
+        current_solution, current_coverage, current_fitness = self.deteriorate_solution(best_solution, best_coverage, n_neighbours, list_transfo=list_transfo)
     
         while self.is_valid(self.instance, solution_coverage=(current_solution, current_coverage)):
             # En enlevant un capteur on est retombé sur une solution faisable
             best_solution, best_coverage = deepcopy(current_solution), deepcopy(current_coverage)
             best_fitness = np.sum(best_solution) - 1
-            current_solution, current_coverage, current_fitness = self.deteriorate_solution(best_solution, best_coverage, n_neighbours)
+            current_solution, current_coverage, current_fitness = self.deteriorate_solution(best_solution, best_coverage, n_neighbours, list_transfo=list_transfo)
 
-        list_transfo = []
+
         iter_without_improvement = 0
 
         while time.time() - begin < time_limit and iter_without_improvement < iter_max:
             #fitness_to_improve = current_fitness
-            best_neighbour = self.best_in_neighbourhood(current_solution, coverage_vect, n_neighbours)
+            best_neighbour = self.best_in_neighbourhood(current_solution, current_coverage, n_neighbours, list_transfo=list_transfo)
             # print("fitness : ", best_neighbour[2])
             tab_best_neighbour_fitness.append(best_neighbour[2])
             tab_best_solution_value.append(best_fitness)
             n_iter += 1
+
+            #print("norme ", np.linalg.norm(best_neighbour[1] - current_coverage, ord=1))
 
             if best_neighbour[2] <= current_fitness:
                 iter_without_improvement = 0
                 current_solution, current_coverage, current_fitness = best_neighbour
         
                 while self.is_valid(self.instance, solution_coverage=(current_solution, current_coverage)):
-                    print("solution_trouvée", np.sum(current_solution) - 1)
-                    print("nouvelle solution : ", self.is_valid(self.instance, solution_coverage=(current_solution, current_coverage)), np.sum(current_solution) - 1)
-                    print("coverage:", current_coverage)
+                    # print("solution_trouvée", np.sum(current_solution) - 1)
+                    # print("nouvelle solution : ", self.is_valid(self.instance, solution_coverage=(current_solution, current_coverage)), np.sum(current_solution) - 1)
+                    # print("transfo associée :", list_transfo[-1])
+                    # print("coverage :")
+                    # self.coverage_as_matrix(current_coverage)
                     #si on a une solution valide
-                    best_solution, best_coverage = deepcopy(current_solution), deepcopy(current_coverage)
-                    current_solution, current_coverage, current_fitness = self.deteriorate_solution(best_solution, best_coverage, n_neighbours)
+                    best_solution = deepcopy(current_solution)
+                    best_coverage = deepcopy(current_coverage)
+                    current_solution, current_coverage, current_fitness = self.deteriorate_solution(best_solution, best_coverage, n_neighbours, list_transfo=list_transfo)
 
             else:
                 iter_without_improvement += 1
 
-        self.improve_solution(solution, coverage_vect)
+        #self.improve_solution(solution, coverage_vect)
         self.set_solution(best_solution, best_coverage)
 
         plt.figure("Local Search")
         plt.plot(np.arange(n_iter), tab_best_solution_value, label="Best Neighbour")
         plt.plot(np.arange(n_iter), tab_best_neighbour_fitness, label="Best Solution")
         plt.show()
+
 
 class TabuSearch(LocalSearch):
     def __init__(self, instance):
