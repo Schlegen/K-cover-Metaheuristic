@@ -56,6 +56,7 @@ def subgraph_is_connex(adj, subgraph):
                 stack.append(v)
                 added_vertices += 1
             idx_v += 1
+    #print("composante_connexe :", added_to_stack.astype(int))
     return added_vertices == n
 
 def n_connex_components(adj, subgraph):

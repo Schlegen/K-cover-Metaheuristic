@@ -1,8 +1,10 @@
 from utils.build_grid import extract_points, init_grid, coordinates_to_cover, extract_points_random
 from utils.math_utils import dist
+from utils.display_utils import circles
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
+from pylab import *
 
 
 class Instance:
@@ -17,12 +19,15 @@ class Instance:
             with_float (boolean) : tells whether we are working with randomly generated points or with discrete grid
         """
 
-        self.source = (0, 0)
         self.k = k
+        self.is_float = with_float
 
         if with_float:  # if the instance is cloud of randomly generated points
-            self.targets = particular_points
-        else:  # else, the instance is a squared grid
+            self.source = (0., 0.)
+            self.targets = particular_points[1:]
+
+        else: 
+            self.source = (0, 0)
             self.n = size[0]
             self.m = size[1]
 
@@ -33,6 +38,13 @@ class Instance:
                             and (i, j) != self.source]
             self.grid = init_grid(particular_points, size)
 
+        #utilisés dans la classe local search
+        self.indexes = {e : i+1 for i,e in enumerate(sorted(self.targets))}
+        self.indexes[self.source] = 0
+
+        self.reversed_indexes = {i+1 : e for i,e in enumerate(sorted(self.targets))}
+        self.reversed_indexes[0] = self.source
+
         self.n_targets = len(self.targets)
 
         self.Rcapt = Rcapt
@@ -41,12 +53,7 @@ class Instance:
         self.neighbours_Rcapt = self.neighbours_dict(Rcapt)
         self.neighbours_Rcom = self.neighbours_dict(Rcom)
 
-        #utilisés dans la classe tabou
-        self.indexes = {e : i+1 for i,e in enumerate(sorted(self.targets))}
-        self.indexes[(0, 0)] = 0
 
-        self.reversed_indexes = {i+1 : e for i,e in enumerate(sorted(self.targets))}
-        self.reversed_indexes[0] = (0, 0)
 
         # construction de la matrice d'adjacence de captation
         capt_neighbours = self.neighbours(self.Rcapt, take_origin=False)
@@ -67,12 +74,20 @@ class Instance:
             size = len(points)
         else:
             points, size = extract_points(data_file)
-        return cls(points, size, Rcapt, Rcom, k)
+        return cls(points, size, Rcapt, Rcom, k, with_float)
 
     def draw_data(self):
+        plt.figure("Instance")
         for target in self.targets:
             plt.scatter(target[0], target[1], marker="+", color='blue')
         plt.scatter(self.source[0], self.source[1], marker="o", color='red')
+
+        #plot a set of circles (circles in diagonal)
+        ax = plt.gca()
+        out = circles([t[0] for t in [(0, 0)] + self.targets], [t[1] for t in [(0, 0)] + self.targets], [self.Rcom for t in [(0, 0)] + self.targets], ax, c="green", alpha=0.1, edgecolor='none')
+        plt.colorbar(out)
+
+        plt.show()
 
     def display(self):
         plt.figure("Instance")
