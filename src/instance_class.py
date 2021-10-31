@@ -4,7 +4,7 @@ from utils.display_utils import circles
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
-from pylab import *
+# from pylab import *
 
 
 class Instance:

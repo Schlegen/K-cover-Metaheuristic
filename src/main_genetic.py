@@ -7,16 +7,12 @@ import time
 
 data_folder = "data/"
 data_file = data_folder + "grille1010_1.dat"
-# data_file = data_folder + "captANOR150_7_4.dat"
+data_file = data_folder + "captANOR100_7_4.dat"
+data_file = data_folder + "captANOR400_7_10_2021.dat"
 start = time.time()
 
-
-instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1, k=1, with_float=False)
-sol = Solution([(0, 1), (0, 5), (0, 6), (0, 8), (1, 3), (1, 5), (1, 6), (1, 9), (2, 0), (2, 2), (2, 4), (2, 8), (3, 4), (4, 0), (4, 1), (5, 1), (5, 3), (5, 8), (5, 9), (6, 1), (6, 3), (6, 4), (6, 5), (7, 1), (7, 7), (7, 9), (8, 0), (8, 1), (8, 5), (9, 5), (9, 6), (9, 8), (3, 9)])
-print(sol.is_valid(instance))
-print(sol.display(instance))
-print(sol.check_with_disk_graph(instance))
-exit()
+with_float = "grille" not in data_file
+instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1, k=1, with_float=with_float)
 
 test_tabu_only = False
 if test_tabu_only:
@@ -27,12 +23,11 @@ if test_tabu_only:
     solution1.captors_binary = best
     solution1.update_list_captors()
     solution1.display(instance)
-    # CHECK QUE DES FOIS CA AMELIORE VRMT
-    # SINON, idee : au lieu de faire des changements 1 par 1, faire 2 par 2
+
 
 else:
-    sol = AlgoGenetic(instance, nb_initial_solutions=12)
-    sol.evolutionary_algorithm(nb_iter=3)
+    sol = AlgoGenetic(instance, nb_initial_solutions=32)
+    sol.evolutionary_algorithm(nb_iter=15)
 
 
 end = time.time()

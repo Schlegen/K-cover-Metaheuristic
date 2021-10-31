@@ -8,6 +8,7 @@ import random as rd
 import networkx as nx
 from utils.math_utils import dist, dist_point_to_list
 from utils.fifo_queue import put_item
+import time
 
 
 class Chromosome(Solution):
@@ -63,7 +64,7 @@ class Chromosome(Solution):
         points_to_communicate_with = self.list_captors + [(0, 0)]
         G.add_nodes_from([(e[0], e[1]) for e in points_to_communicate_with])
 
-        E_com = instance.neighbours_dict(instance.Rcom)
+        E_com = instance.neighbours_Rcom
         for u in points_to_communicate_with:
             for v in E_com[u]:
                 if v in points_to_communicate_with:
@@ -116,7 +117,7 @@ class Chromosome(Solution):
     def penalize_infeasibility(self):
         self.disk_graph_captors(self.instance)
         connected_components = nx.connected_components(self.disk_graph_com)
-        nb_connected_components = len([c for c in connected_components])
+        nb_connected_components = len(list(connected_components))
 
         self.disk_graph_targets(self.instance)
         targets_cover = self.disk_graph_capt.in_degree
@@ -130,12 +131,8 @@ class Chromosome(Solution):
 
     def try_to_remove_captor(self, index_captor):
         last_captors_valid = deepcopy(self.list_captors)
-        print(f"TRY remove {self.list_captors[index_captor]}")
         self.list_captors.pop(index_captor)  # We delete the i_th element of the original list
-        print(self.list_captors)
         solution_is_valid = self.is_valid(self.instance)  # We check if it generates a valid solution
-        if solution_is_valid:
-            print(f"remove {index_captor}")
         if not solution_is_valid:  # If it is no longer valid, we cancel the deletion and continue
             self.list_captors = deepcopy(last_captors_valid)  # We could not deleted the captor
 
@@ -262,7 +259,7 @@ class Chromosome(Solution):
         if (0, 0) in self.list_captors:
             self.captors_binary[-1] = 1
 
-    def tabu_search(self, size=3, max_iter=30):
+    def tabu_search(self, size=3, max_iter=30, nb_best_neighbours=16):
         """
             Tabu search for mutation step in Evolutionary Algorithm (1st method)
             Neighborhood with Hamming distance : uv edge if and only if distance(u,v) == 1
@@ -270,9 +267,11 @@ class Chromosome(Solution):
             size (int) : size of the tabu list at each iteration
             max_iter (int) : maximum number of iterations
         """
+        s1 = time.time()
         Ecom = self.instance.neighbours_dict(self.instance.Rcom)
         list_tabu = list()
         targets = self.instance.targets + [(0, 0)]
+        t = 0
 
         candidates = deepcopy(targets)  # points candidates for the modification (0 --> 1 or 1 --> 0)
         i = 0
@@ -293,8 +292,10 @@ class Chromosome(Solution):
 
             # M2 : best neighbour : (nb_captors, target_modified, penalization)
             best_neighbour_solution = [len(self.instance.targets) + 2, None, 0]
-            for target in candidates:
-                current_solution = deepcopy(self)
+            for target in candidates[:nb_best_neighbours]:
+                # current_solution = deepcopy(self)
+                current_solution = Chromosome(self.instance, self.list_captors)
+                current_solution.update_captors_binary()
                 modif_index = targets.index(target)
                 current_solution.captors_binary[modif_index] = 1 - current_solution.captors_binary[modif_index]
                 current_solution.update_list_captors()
@@ -324,14 +325,16 @@ class Chromosome(Solution):
                 best_solution[1] = best_neighbour_value
                 best_solution[2] = best_neighbour_pen
 
+            s = time.time()
             neighbours = Ecom[modif_target]
+            t += time.time() - s
             candidates = deepcopy(neighbours)
             for tabu_target in list_tabu:
                 if tabu_target in candidates:
                     candidates.remove(tabu_target)
 
+            np.random.shuffle(candidates)
             i += 1
-
         return best_solution
 
     def find_candidates_exchange_2_1(self, neighborhood):
@@ -364,7 +367,7 @@ class Chromosome(Solution):
                 )
         return candidates
 
-    def tabu_search_2(self, size=3, max_iter=10, nb_best_neighbours=5):
+    def tabu_search_2(self, size=3, max_iter=10, nb_best_neighbours=16):
         """
             Tabu search for mutation step in Evolutionary Algorithm (2nd method)
             Neighborhood : Within a disk of radius Rcom, we try to replace 2 captors with only 1
@@ -393,7 +396,9 @@ class Chromosome(Solution):
             best_neighbour_solution = [len(self.instance.targets) + 2, ((None, None), None), 0, None]
             for targets_set in candidates[:nb_best_neighbours]:
                 for modification in possible_modifications:  # we try 3 different modifications for the 3 targets
-                    current_solution = deepcopy(self)
+                    # current_solution = deepcopy(self)
+                    current_solution = Chromosome(self.instance, self.list_captors)
+                    current_solution.update_captors_binary()
                     u, v, w = targets_set[0][0], targets_set[0][1], targets_set[1]
                     u_index, v_index, w_index = targets.index(u), targets.index(v), targets.index(w)
                     current_solution.captors_binary[u_index] = modification[0]
@@ -455,7 +460,7 @@ class TrivialSolutionRandomized(Chromosome):
         # We consider the trivial solution : all targets get a captor
         self.list_captors = deepcopy(instance.targets)
         np.random.shuffle(self.list_captors)  # shuffle the list of captors
-        n = len(instance.targets) * 2 // 3
+        n = len(instance.targets) * 29 // 30
         for i in range(n - 1, -1, -1):
             self.try_to_remove_captor(i)
 

@@ -5,6 +5,7 @@ import numpy as np
 import random as rd
 from copy import deepcopy
 import matplotlib.pyplot as plt
+import time
 
 
 class AlgoGenetic:
@@ -145,11 +146,11 @@ class AlgoGenetic:
             if r < proba:
                 if r < proba / 2:
                     # 1st Tabou : Neighborhood : we switch the state of 1 target (0 --> 1 or 1--> 0)
-                    solution_binary, value, pen = self.children[i].tabu_search(size=8, max_iter=16)
+                    solution_binary, value, pen = self.children[i].tabu_search(size=6, max_iter=16)
                 else:
                     # 2nd Tabou : Neighborhood : we switch the state of 2 or 3 targets
                     # (select 2 captors + 1 without captor and try permutations)
-                    solution_binary, value, pen = self.children[i].tabu_search_2(size=8, max_iter=12)
+                    solution_binary, value, pen = self.children[i].tabu_search_2(size=6, max_iter=12)
 
                 self.children[i].captors_binary = deepcopy(solution_binary)
                 self.children[i].update_list_captors()
@@ -193,7 +194,10 @@ class AlgoGenetic:
                     self.children[i].penalization = self.children[i].penalize_infeasibility()
 
             # Mutation step
+            st = time.time()
             self.mutation()
+            en = time.time()
+            print(f"Mutation : {round(en - st, 3)} seconds")
 
             # Population update
             best_parents_indexes = np.array(self.fitness_values).argsort()[:self.nb_parents_to_keep]
@@ -222,9 +226,9 @@ class AlgoGenetic:
             if self.population[i].penalization > 0:
                 self.population[i].reparation_heuristic(self.instance)
                 self.population[i].penalization = self.population[i].penalize_infeasibility()
-        # for i in range(len(self.population)):
-        for j in range(len(self.population[0].list_captors), 0, -1):
-            self.population[0].try_to_remove_captor(j - 1)
+        for i in range(len(self.population)):
+            for j in range(len(self.population[i].list_captors), 0, -1):
+                self.population[i].try_to_remove_captor(j - 1)
 
         self.population = deepcopy(self.init_fitness_value(self.population))
         values = [self.population[i].nb_captors for i in range(len(self.population))]
@@ -250,7 +254,6 @@ class AlgoGenetic:
 
         best_solution_index = int(np.argmin(self.fitness_values))
 
-        self.population[0].display(self.instance)
         self.population[best_solution_index].display(self.instance)
 
 
