@@ -40,6 +40,7 @@ if __name__ == "__main__":
     path_cplex = args.cplex
     n_neighbours = args.neighbours
 
+    with_float = "captANOR" in data_file
 
     if mode == "bound":
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom)
@@ -63,20 +64,21 @@ if __name__ == "__main__":
     
     elif mode == "local":
 
-        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k)
+        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
         local_search = LocalSearch(instance)
         local_search.set_solution(*local_search.GenerateInitialSolution())
-        #local_search.coverage_as_matrix(local_search.coverage_vect)
-        # solution, coverage = local_search.GenerateInitialSolution()
-        #local_search.improve_solution(solution, coverage)
-        #local_search.set_solution(solution, coverage)
-        local_search.is_valid(instance)
-        local_search.display(instance)
+        # print("2")
+        # #local_search.coverage_as_matrix(local_search.coverage_vect)
+        # # solution, coverage = local_search.GenerateInitialSolution()
+        # #local_search.improve_solution(solution, coverage)
+        # #local_search.set_solution(solution, coverage)
+        # local_search.is_valid(instance)
+        # local_search.display(instance)
 
 
 
-        # print("solution initiale : ", local_search.value())
-        local_search.search(iter_max, time_limit, n_neighbours)
+        # # print("solution initiale : ", local_search.value())
+        #local_search.search(iter_max, time_limit, n_neighbours)
         #print("solution après amélioration : ", local_search.value())
         local_search.is_valid(instance)
         local_search.display(instance)
@@ -84,7 +86,7 @@ if __name__ == "__main__":
     elif mode == "test":
         import numpy as np
 
-        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k)
+        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
         local_search = LocalSearch(instance)
         solution, coverage = local_search.GenerateInitialSolution()
         local_search.set_solution(solution, coverage)

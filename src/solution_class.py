@@ -2,11 +2,12 @@ from copy import deepcopy
 from operator import ne
 from numpy.lib.function_base import insert, select
 from instance_class import Instance
-from utils.errors import Error, InputError
+from utils.errors import Error, InputError, ConvergenceError
 from utils.math_utils import subgraph_is_connex, n_connex_components
 import math as mh
 import numpy as np
 import matplotlib.pyplot as plt
+from utils.display_utils import circles
 import itertools
 import random as rd
 import time
@@ -56,29 +57,41 @@ class Solution:
     def value(self):
         return len(self.list_captors)
 
-    def draw_main_info(self, instance):
+    def draw_main_info(self, instance, ax):
         # TODO : A enrichir pour afficher les liens de communication et de captation
+        if not instance.is_float:
+            for i in range(instance.n):
+                for j in range(instance.m):
+                    if instance.grid[i, j] == 1:
+                        ax.scatter(i, j, marker="+", color='blue')
+                    elif instance.grid[i, j] == 2:
+                        ax.scatter(i, j, marker="o", color='black')
 
-        for i in range(instance.n):
-            for j in range(instance.m):
-                if instance.grid[i, j] == 1:
-                    plt.scatter(i, j, marker="+", color='blue')
-                elif instance.grid[i, j] == 2:
-                    plt.scatter(i, j, marker="o", color='black')
+            for captor in self.list_captors:
+                print("hello")
+                ax.scatter(captor[0], captor[1], marker="D", color='orange')
 
-        for captor in self.list_captors:
-            plt.scatter(captor[0], captor[1], marker="D", color='orange')
+        else:
+            ax.scatter(0, 0, marker="o", color='black')
+            for target in instance.targets:
+                ax.scatter(target[0], target[1], marker="+", color='blue')
+            for captor in self.list_captors:
+                ax.scatter(captor[0], captor[1], marker="D", color='orange')
 
     @staticmethod
-    def draw_uncovered_targets(targets):
+    def draw_uncovered_targets(targets, ax):
         for target in targets:
-            plt.scatter(target[0], target[1], marker="+", color='red')
+            ax.scatter(target[0], target[1], marker="+", color='red')
 
     def display(self, instance, uncovered_targets=None):
-        plt.figure("Solution")
-        self.draw_main_info(instance)
+        fig = plt.figure(f"Solution")
+        ax = fig.add_subplot(111)
+        ax.set_title(f"value : {self.value()} (Rcapt={self.instance.Rcapt} Rcom={self.instance.Rcom} k={self.instance.k})")
+        out = circles([t[0] for t in self.list_captors], [t[1] for t in self.list_captors], [self.instance.Rcom for t in self.list_captors], ax, c="green", alpha=0.1, edgecolor='none')
+        self.draw_main_info(instance, ax)
         if not self.valid and uncovered_targets is not None:
-            self.draw_uncovered_targets(uncovered_targets)
+            self.draw_uncovered_targets(uncovered_targets, ax)
+
         plt.show()
 
 class TrivialSolution(Solution):
@@ -159,19 +172,33 @@ class LocalSearch(Solution):
         #tableau notant le nombre de capteurs manquant à chaque cible (peut être négatif en cas d'exces)
         coverage_vect = self.instance.k * np.ones(self.instance.n_targets+1, dtype=np.int64)
         coverage_vect[0] = 0
-
+        i = 0
         while np.any(coverage_vect > 0):
-
             remaining_degrees_com = ((1 - solution.reshape(1, self.instance.n_targets+1)) @ self.instance.E_com).flatten()
             remaining_degrees_capt = (np.minimum(1, np.maximum(0, coverage_vect.reshape(1, self.instance.n_targets+1))) @ self.instance.E_capt).flatten()
+            
             remaining_degrees = remaining_degrees_com + remaining_degrees_capt
 
             connex_neighbours = np.minimum(1, (solution.reshape(1, self.instance.n_targets+1) @ self.instance.E_com).flatten())
             selected_captor = np.argmax(connex_neighbours * remaining_degrees * (1 - solution))
+            if selected_captor == 0:
+                print(solution)
+                raise ConvergenceError("Unable to generate a feasible initial solution")
+
             solution[selected_captor] = 1
 
+
+            # print(self.instance.E_com)
+            # print("a", selected_captor)
+            # print("b", remaining_degrees)
+            # print("c", connex_neighbours)
+            # print("d", connex_neighbours * remaining_degrees * (1 - solution))
+            # print("e", solution)
+            # print("")
             # mise à jour des sommets captés
             coverage_vect -= self.instance.E_capt[selected_captor].flatten()
+
+            i += 1
         
         return solution, coverage_vect
 
@@ -273,6 +300,8 @@ class LocalSearch(Solution):
             
             else:
                 self.valid = subgraph_is_connex(instance.E_com, np.argwhere(self.solution).flatten())
+
+            return self.valid
         
         else:
             res = np.all(solution_coverage[1] <= 0)
@@ -441,7 +470,6 @@ class LocalSearch(Solution):
         plt.plot(np.arange(n_iter), tab_best_solution_value, label="Best Neighbour")
         plt.plot(np.arange(n_iter), tab_best_neighbour_fitness, label="Best Solution")
         plt.show()
-
 
 class TabuSearch(LocalSearch):
     def __init__(self, instance):

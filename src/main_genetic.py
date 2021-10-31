@@ -5,11 +5,11 @@ from utils.build_grid import extract_points_random
 import time
 
 data_folder = "data/"
-data_file = data_folder + "captANOR150_7_4.dat"
 data_file = data_folder + "grille1010_1.dat"
+# data_file = data_folder + "captANOR150_7_4.dat"
 start = time.time()
 
-instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1, k=2, with_float=False)
+instance = Instance.from_disk(data_file, Rcom=2, Rcapt=2, k=1, with_float=False)
 
 test_tabu_only = False
 if test_tabu_only:
