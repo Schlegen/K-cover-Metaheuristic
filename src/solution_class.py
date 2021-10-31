@@ -51,6 +51,8 @@ class Solution:
         else:
             self.valid = subgraph_is_connex(instance.E_com, np.argwhere(self.solution).flatten())
 
+        return self.valid
+
     def value(self):
         return len(self.list_captors)
 
@@ -181,7 +183,7 @@ class LocalSearch(Solution):
         for u in np.argwhere(self.solution).flatten():
             if u > 0:
                 can_remove = True
-    
+
                 # on regarde si les cibles captées seraient suffisemment captées sans le capteur
                 list_capt = np.argwhere(self.instance.E_capt[u].flatten()).flatten()
                 n_capted = len(list_capt)

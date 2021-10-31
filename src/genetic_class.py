@@ -143,7 +143,16 @@ class AlgoGenetic:
         for i in range(len(self.children)):
             r = rd.random()
             if r < proba:
-                solution_binary, value, pen = self.children[i].tabu_search(size=8, max_iter=16)
+                if r < proba / 2:
+                    solution_binary, value, pen = self.children[i].tabu_search(size=8, max_iter=16)
+                else:
+                    print("-------")
+                    print(len(self.children[i].list_captors))
+                    print(self.children[i].penalization)
+                    solution_binary, value, pen = self.children[i].tabu_search_2(size=8, max_iter=12)
+                    print(value)
+                    print(pen)
+
                 self.children[i].captors_binary = deepcopy(solution_binary)
                 self.children[i].update_list_captors()
                 self.children[i].penalization = pen
@@ -215,11 +224,14 @@ class AlgoGenetic:
             if self.population[i].penalization > 0:
                 self.population[i].reparation_heuristic(self.instance)
                 self.population[i].penalization = self.population[i].penalize_infeasibility()
+        for i in range(len(self.population)):
+            for j in range(len(self.population[i].list_captors), 0, -1):
+                self.population[i].try_to_remove_captor(j - 1)
 
         self.population = deepcopy(self.init_fitness_value(self.population))
         values = [self.population[i].nb_captors for i in range(len(self.population))]
         pen = [self.population[i].penalization for i in range(len(self.population))]
-        print(f"\n=== [ {nb_iter} / {nb_iter} ] ===")
+        print(f"\n=== [ After reparation heuristic + solutions enhancement] ===")
         print(values)
         print(pen)
         solutions_values.append(values)

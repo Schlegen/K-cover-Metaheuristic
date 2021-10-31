@@ -1,4 +1,4 @@
-from utils.build_grid import extract_points, init_grid, coordinates_to_cover
+from utils.build_grid import extract_points, init_grid, coordinates_to_cover, extract_points_random
 from utils.math_utils import dist
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,28 +6,34 @@ import networkx as nx
 
 
 class Instance:
-    def __init__(self, deleted_points, size, Rcapt=1, Rcom=1, k=1):
+    def __init__(self, particular_points, size, Rcapt=1, Rcom=1, k=1, with_float=True):
         """constructeur de la classe Instance
 
         Args:
             Rcapt (float, optionnal): rayon de captage. Defaults to 1.
             Rcom (float, optionnal): rayon de communication. Defaults to 1.
+            particular_points (list of tuples) : may be the points to delete from a grid (with_float=False) or
+                the coordinates of the targets (with_float=False)
+            with_float (boolean) : tells whether we are working with randomly generated points or with discrete grid
         """
 
         self.source = (0, 0)
-        self.n = size[0]
-        self.m = size[1]
-
         self.k = k
 
-        self.deleted_points = deleted_points
-        self.n_deleted_points = len(deleted_points)
+        if with_float:  # if the instance is cloud of randomly generated points
+            self.targets = particular_points
+        else:  # else, the instance is a squared grid
+            self.n = size[0]
+            self.m = size[1]
 
-        self.targets = [(i, j) for i in range(self.n) for j in range(self.m) if (i, j) not in deleted_points
-                        and (i, j) != self.source]
+            self.deleted_points = particular_points
+            self.n_deleted_points = len(particular_points)
+
+            self.targets = [(i, j) for i in range(self.n) for j in range(self.m) if (i, j) not in particular_points
+                            and (i, j) != self.source]
+            self.grid = init_grid(particular_points, size)
+
         self.n_targets = len(self.targets)
-
-        self.grid = init_grid(deleted_points, size)
 
         self.Rcapt = Rcapt
         self.Rcom = Rcom
@@ -55,9 +61,13 @@ class Instance:
             self.E_com[self.indexes[arc[0]], self.indexes[arc[1]]] = 1
 
     @classmethod
-    def from_disk(cls, data_file, Rcapt=1, Rcom=1, k=1):
-        captors_to_delete, size = extract_points(data_file)
-        return cls(captors_to_delete, size, Rcapt, Rcom, k)
+    def from_disk(cls, data_file, Rcapt=1, Rcom=1, k=1, with_float=True):
+        if with_float:
+            points = extract_points_random(data_file)
+            size = len(points)
+        else:
+            points, size = extract_points(data_file)
+        return cls(points, size, Rcapt, Rcom, k)
 
     def draw_data(self):
         for target in self.targets:
