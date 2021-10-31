@@ -68,7 +68,6 @@ class Solution:
                         ax.scatter(i, j, marker="o", color='black')
 
             for captor in self.list_captors:
-                print("hello")
                 ax.scatter(captor[0], captor[1], marker="D", color='orange')
 
         else:
@@ -86,12 +85,11 @@ class Solution:
     def display(self, instance, uncovered_targets=None):
         fig = plt.figure(f"Solution")
         ax = fig.add_subplot(111)
-        ax.set_title(f"value : {self.value()} (Rcapt={self.instance.Rcapt} Rcom={self.instance.Rcom} k={self.instance.k})")
-        out = circles([t[0] for t in self.list_captors], [t[1] for t in self.list_captors], [self.instance.Rcom for t in self.list_captors], ax, c="green", alpha=0.1, edgecolor='none')
+        ax.set_title(f"value : {self.value()} (Rcapt={instance.Rcapt} Rcom={instance.Rcom} k={instance.k})")
+        out = circles([t[0] for t in self.list_captors], [t[1] for t in self.list_captors], [instance.Rcom for t in self.list_captors], ax, c="green", alpha=0.1, edgecolor='none')
         self.draw_main_info(instance, ax)
         if not self.valid and uncovered_targets is not None:
             self.draw_uncovered_targets(uncovered_targets, ax)
-
         plt.show()
 
 class TrivialSolution(Solution):
@@ -204,21 +202,9 @@ class LocalSearch(Solution):
 
     def coverage_as_matrix(self, coverage):
         matrix = np.zeros((self.instance.n, self.instance.m), dtype=int)
-        # matrix2 = np.zeros((self.instance.n, self.instance.m), dtype=int)
-        # matrix3 = np.zeros((self.instance.n, self.instance.m), dtype=int)
         for u, val in enumerate(coverage):
             coords = self.instance.reversed_indexes[u]
             matrix[coords[0], coords[1]] = val
-            # matrix2[coords[0], coords[1]] = coords[0]
-            # matrix3[coords[0], coords[1]] = coords[1]
-
-        # print(matrix)
-        # print("")
-        # print(matrix.transpose())
-        # print("")
-        print(matrix.transpose()[::-1, :])
-        # print(matrix2)
-        # print(matrix3)
         
     def set_solution(self, solution, coverage_vect):
         self.solution = deepcopy(solution)
