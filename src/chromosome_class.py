@@ -130,8 +130,12 @@ class Chromosome(Solution):
 
     def try_to_remove_captor(self, index_captor):
         last_captors_valid = deepcopy(self.list_captors)
+        print(f"TRY remove {self.list_captors[index_captor]}")
         self.list_captors.pop(index_captor)  # We delete the i_th element of the original list
+        print(self.list_captors)
         solution_is_valid = self.is_valid(self.instance)  # We check if it generates a valid solution
+        if solution_is_valid:
+            print(f"remove {index_captor}")
         if not solution_is_valid:  # If it is no longer valid, we cancel the deletion and continue
             self.list_captors = deepcopy(last_captors_valid)  # We could not deleted the captor
 
@@ -189,10 +193,15 @@ class Chromosome(Solution):
             if v_candidate not in self.list_captors:
                 return v_candidate
 
-    @staticmethod
-    def find_best_candidate_covering_v2(not_covered_targets):
+    def find_best_candidate_covering_v2(self, not_covered_targets):
         i = rd.randint(0, len(not_covered_targets) - 1)
-        return not_covered_targets[i]
+        target_to_cover = not_covered_targets[i]
+        if target_to_cover not in self.list_captors:
+            return target_to_cover
+        else:
+            for target in self.instance.neighbours_Rcom[target_to_cover]:
+                if target not in self.list_captors:
+                    return target
 
     def reparation_heuristic(self, instance, verbose=False):
         """
@@ -255,6 +264,7 @@ class Chromosome(Solution):
 
     def tabu_search(self, size=3, max_iter=30):
         """
+            Tabu search for mutation step in Evolutionary Algorithm (1st method)
             Neighborhood with Hamming distance : uv edge if and only if distance(u,v) == 1
         Args:
             size (int) : size of the tabu list at each iteration
@@ -356,6 +366,7 @@ class Chromosome(Solution):
 
     def tabu_search_2(self, size=3, max_iter=10, nb_best_neighbours=5):
         """
+            Tabu search for mutation step in Evolutionary Algorithm (2nd method)
             Neighborhood : Within a disk of radius Rcom, we try to replace 2 captors with only 1
         Args:
             size (int) : size of the tabu list at each iteration
@@ -444,7 +455,7 @@ class TrivialSolutionRandomized(Chromosome):
         # We consider the trivial solution : all targets get a captor
         self.list_captors = deepcopy(instance.targets)
         np.random.shuffle(self.list_captors)  # shuffle the list of captors
-        n = len(instance.targets)  # * 2 // 3
+        n = len(instance.targets) * 2 // 3
         for i in range(n - 1, -1, -1):
             self.try_to_remove_captor(i)
 

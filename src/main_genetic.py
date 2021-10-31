@@ -1,6 +1,7 @@
 from instance_class import Instance
 from genetic_class import AlgoGenetic, TrivialSolutionRandomized
-from solution_class import TrivialSolution
+from chromosome_class import Chromosome
+from solution_class import TrivialSolution, Solution
 from utils.build_grid import extract_points_random
 import time
 
@@ -9,8 +10,12 @@ data_file = data_folder + "captANOR150_7_4.dat"
 data_file = data_folder + "grille1010_1.dat"
 start = time.time()
 
-instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1, k=2, with_float=False)
-
+instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1, k=1, with_float=False)
+sol = Solution([(0, 1), (0, 5), (0, 6), (0, 8), (1, 3), (1, 5), (1, 6), (1, 9), (2, 0), (2, 2), (2, 4), (2, 8), (3, 4), (4, 0), (4, 1), (5, 1), (5, 3), (5, 8), (5, 9), (6, 1), (6, 3), (6, 4), (6, 5), (7, 1), (7, 7), (7, 9), (8, 0), (8, 1), (8, 5), (9, 5), (9, 6), (9, 8), (3, 9)])
+print(sol.is_valid(instance))
+print(sol.display(instance))
+print(sol.check_with_disk_graph(instance))
+exit()
 test_tabu_only = False
 if test_tabu_only:
     solution1 = TrivialSolutionRandomized(instance)
@@ -25,7 +30,7 @@ if test_tabu_only:
 
 else:
     sol = AlgoGenetic(instance, nb_initial_solutions=12)
-    sol.evolutionary_algorithm(nb_iter=12)
+    sol.evolutionary_algorithm(nb_iter=3)
 
 
 end = time.time()
