@@ -9,6 +9,13 @@ def extract_points(data_file):
     return points, (size, size)
 
 
+def extract_points_random(data_file):
+    content = [i.strip() for i in open(data_file).readlines()]
+    points = [(float(x.split(' ')[2]), float(x.split(' ')[3])) for x in content[1:-1]]
+    points += [(float(content[-1].split(' ')[2]), float(content[-1].replace(";", "").split(' ')[3]))]
+    return points
+
+
 def generate_grid(size):
     grid = np.ones((size[0], size[1]))
     grid[0, 0] = 2

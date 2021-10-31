@@ -1,13 +1,34 @@
 from instance_class import Instance
-from genetic_class import AlgoGenetic
+from genetic_class import AlgoGenetic, TrivialSolutionRandomized
+from solution_class import TrivialSolution
+from utils.build_grid import extract_points_random
+import time
 
 data_folder = "data/"
 data_file = data_folder + "grille1010_1.dat"
+data_file = data_folder + "captANOR150_7_4.dat"
+start = time.time()
 
-instance = Instance.from_disk(data_file, Rcom=1, Rcapt=1)
+instance = Instance.from_disk(data_file, Rcom=2, Rcapt=2, k=1, with_float=True)
 
-sol = AlgoGenetic(instance, nb_initial_solutions=16)
-sol.evolutionary_algorithm(nb_iter=15)
+test_tabu_only = True
+if test_tabu_only:
+    solution1 = TrivialSolutionRandomized(instance)
+    solution1.display(instance)
+    best = solution1.tabu_search(size=20, max_iter=300)[0]
+    solution1.captors_binary = best
+    solution1.update_list_captors()
+    solution1.display(instance)
+    # CHECK QUE DES FOIS CA AMELIORE VRMT
+    # SINON, idee : au lieu de faire des changements 1 par 1, faire 2 par 2
+
+else:
+    sol = AlgoGenetic(instance, nb_initial_solutions=8)
+    sol.evolutionary_algorithm(nb_iter=12)
+
+
+end = time.time()
+print(f"Computation time : {round(end - start, 2)} seconds.")
 exit()
 #
 # #instance.display()
@@ -35,9 +56,11 @@ exit()
 # # print(solution3.is_valid(instance))
 # # print("Trivial Randomized Solution value : ", solution3.value())
 # # solution3.display(instance)
-#
-#
-# # solution2 = MinCostFlowMethod(instance)
-# # solution2.compute_flow()
-# # solution2.build_solution()
-# # print("comparaison : ", solution1.value(), solution2.value())
+
+
+instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1)
+solution1 = TrivialSolutionRandomized(instance)
+start = time.time()
+print(solution1.check_with_disk_graph(instance))
+end = time.time()
+print(f"Computation time : {round(end - start, 2)} seconds.")
