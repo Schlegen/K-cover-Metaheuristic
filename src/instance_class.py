@@ -44,7 +44,7 @@ class Instance:
 
         # construction de la matrice d'adjacence de captation
         capt_neighbours = self.neighbours(self.Rcapt, take_origin=False)
-        self.E_capt = np.zeros((self.n_targets+1, self.n_targets+1), dtype=np.int8)
+        self.E_capt = np.eye(self.n_targets+1, dtype=np.int8)
         for arc in capt_neighbours:
             self.E_capt[self.indexes[arc[0]], self.indexes[arc[1]]] = 1
 
@@ -96,7 +96,6 @@ class Instance:
                 if dist(u, v) <= R:
                     list_neighbours.append((u, v))
                     list_neighbours.append((v, u))
-
         return list_neighbours
 
     def neighbours_dict(self, R):

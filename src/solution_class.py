@@ -150,7 +150,7 @@ class LocalSearch(Solution):
         #construction de la matrice d'adjacence de 
         self.list_captors = []
 
-    def GenerateInitialSolution(self):        
+    def GenerateInitialSolution(self):
         solution = np.zeros(self.instance.n_targets+1, dtype=np.int64)
         solution[0] = 1
 
@@ -173,6 +173,24 @@ class LocalSearch(Solution):
         
         return solution, coverage_vect
 
+    def coverage_as_matrix(self, coverage):
+        matrix = np.zeros((self.instance.n, self.instance.m), dtype=int)
+        # matrix2 = np.zeros((self.instance.n, self.instance.m), dtype=int)
+        # matrix3 = np.zeros((self.instance.n, self.instance.m), dtype=int)
+        for u, val in enumerate(coverage):
+            coords = self.instance.reversed_indexes[u]
+            matrix[coords[0], coords[1]] = val
+            # matrix2[coords[0], coords[1]] = coords[0]
+            # matrix3[coords[0], coords[1]] = coords[1]
+
+        # print(matrix)
+        # print("")
+        # print(matrix.transpose())
+        # print("")
+        print(matrix.transpose()[::-1, :])
+        # print(matrix2)
+        # print(matrix3)
+        
     def set_solution(self, solution, coverage_vect):
         self.solution = deepcopy(solution)
         self.coverage_vect = deepcopy(coverage_vect)
@@ -323,19 +341,19 @@ class LocalSearch(Solution):
             if choice == 1:
                 v_out = np.random.choice(np.argwhere(solution[1:]).flatten() + 1)
                 v_in = np.random.choice((np.argwhere(1 - solution[1:])).flatten() + 1) 
-                transfo_name = "t11_{v_out}_{v_in}"
+                transfo_name = f"t11_{v_out}_{v_in}"
                 self.exchange11(new_solution, new_coverage, v_out, v_in)
 
             elif choice == 2:
                 v_out = np.random.choice(np.argwhere(solution[1:]).flatten() + 1, 2, replace=False) 
                 v_in = np.random.choice((np.argwhere(1 - solution[1:])).flatten() + 1, 2, replace=False)
-                transfo_name = "t22_{v_out[0]},{v_out[1]}_{v_in[0]},{v_in[1]}"
+                transfo_name = f"t22_{v_out[0]},{v_out[1]}_{v_in[0]},{v_in[1]}"
                 self.exchange22(new_solution, new_coverage, v_out[0], v_out[1], v_in[0], v_in[1])
 
             elif choice == 3:
                 v_out = np.random.choice(np.argwhere(solution[1:]).flatten() + 1, 2, replace=False)
                 v_in = np.random.choice((np.argwhere(1 - solution[1:])).flatten() + 1)
-                transfo_name = "t21_{v_out[0]},{v_out[1]}_{v_in}"
+                transfo_name = f"t21_{v_out[0]},{v_out[1]}_{v_in}"
                 self.exchange21(new_solution, new_coverage, v_out[0], v_out[1], v_in)
 
             # else:

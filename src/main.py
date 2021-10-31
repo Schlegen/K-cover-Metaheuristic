@@ -65,20 +65,41 @@ if __name__ == "__main__":
 
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k)
         local_search = LocalSearch(instance)
-        #local_search.set_solution(*local_search.GenerateInitialSolution())
+        local_search.set_solution(*local_search.GenerateInitialSolution())
+        #local_search.coverage_as_matrix(local_search.coverage_vect)
         # solution, coverage = local_search.GenerateInitialSolution()
         #local_search.improve_solution(solution, coverage)
         #local_search.set_solution(solution, coverage)
-        # local_search.is_valid(instance)
-        # local_search.display(instance)
-        print("solution initiale : ", local_search.value())
+        local_search.is_valid(instance)
+        local_search.display(instance)
+
+
+
+        # print("solution initiale : ", local_search.value())
         local_search.search(iter_max, time_limit, n_neighbours)
         #print("solution après amélioration : ", local_search.value())
         local_search.is_valid(instance)
         local_search.display(instance)
 
     elif mode == "test":
-        ()
+        import numpy as np
+
+        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k)
+        local_search = LocalSearch(instance)
+        solution, coverage = local_search.GenerateInitialSolution()
+        local_search.set_solution(solution, coverage)
+        local_search.coverage_as_matrix(coverage)
+        # local_search.is_valid(instance)
+        # local_search.display(instance)
+        v_out = np.random.choice(np.argwhere(solution[1:]).flatten() + 1, 2, replace=False)
+        v_in = np.random.choice((np.argwhere(1 - solution[1:])).flatten() + 1)
+        transfo_name = f"t21_{v_out[0]},{v_out[1]}_{v_in}"
+        local_search.exchange21(solution, coverage, v_out[0], v_out[1], v_in)
+        print(transfo_name, instance.reversed_indexes[v_out[0]], instance.reversed_indexes[v_out[1]], instance.reversed_indexes[v_in])
+        local_search.set_solution(solution, coverage)
+        local_search.coverage_as_matrix(coverage)
+        local_search.is_valid(instance)
+        local_search.display(instance)
         # Partie ou on mets des trucs temporaires pour les tester
 
 
