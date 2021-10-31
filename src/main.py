@@ -84,24 +84,13 @@ if __name__ == "__main__":
         local_search.display(instance)
 
     elif mode == "test":
-        import numpy as np
+        data_file = "data/grille1010_1.dat"
+        start = time.time()
 
-        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
-        local_search = LocalSearch(instance)
-        solution, coverage = local_search.GenerateInitialSolution()
-        local_search.set_solution(solution, coverage)
-        local_search.coverage_as_matrix(coverage)
-        # local_search.is_valid(instance)
-        # local_search.display(instance)
-        v_out = np.random.choice(np.argwhere(solution[1:]).flatten() + 1, 2, replace=False)
-        v_in = np.random.choice((np.argwhere(1 - solution[1:])).flatten() + 1)
-        transfo_name = f"t21_{v_out[0]},{v_out[1]}_{v_in}"
-        local_search.exchange21(solution, coverage, v_out[0], v_out[1], v_in)
-        print(transfo_name, instance.reversed_indexes[v_out[0]], instance.reversed_indexes[v_out[1]], instance.reversed_indexes[v_in])
-        local_search.set_solution(solution, coverage)
-        local_search.coverage_as_matrix(coverage)
-        local_search.is_valid(instance)
-        local_search.display(instance)
+        instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1, k=1, with_float=False)
+        sol = Solution([(0, 1), (0, 5), (0, 6), (0, 8), (1, 3), (1, 5), (1, 6), (1, 9), (2, 0), (2, 2), (2, 4), (2, 8), (3, 4), (4, 0), (4, 1), (5, 1), (5, 3), (5, 8), (5, 9), (6, 1), (6, 3), (6, 4), (6, 5), (7, 1), (7, 7), (7, 9), (8, 0), (8, 1), (8, 5), (9, 5), (9, 6), (9, 8), (3, 9)])
+        print(sol.is_valid(instance))
+        print(sol.display(instance))
         # Partie ou on mets des trucs temporaires pour les tester
 
 
