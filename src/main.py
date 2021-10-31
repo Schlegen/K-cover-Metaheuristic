@@ -12,13 +12,21 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", help="mode of the execution",
-                    choices=["bound", "genetic", "tabu", "test"], default="test")
+                    choices=["bound", "genetic", "local", "tabu", "test"], default="test")
     parser.add_argument("-d", "--data_path", help="path to the instance", type=str, default="data/grille1010_1.dat")
     parser.add_argument("-s", "--save_file", help="Path to the score file", type=str, default="data/scores.csv")
     parser.add_argument("-rcom", "--rcom", help="value of R_com", type=int, default=1)
     parser.add_argument("-rcapt", "--rcapt", help="Value of R_capt", type=int, default=1)
     parser.add_argument("-k", "--k", help="Value of k", type=int, default=1)
+
+    #mode relaxation
     parser.add_argument("-cplex", "--cplex", help="Path to the cplex executable", type=str, default="")
+
+    #mode localsearch
+    parser.add_argument("-t", "--timelimit", help="Time limit (seconds)", type=int, default=5)
+    parser.add_argument("-i", "--itermax", help="Number of iterations without improvement", type=int, default=10)
+    parser.add_argument("--neighbours", help="Size of the neighbourhoods", type=int, default=40)
+
     args = parser.parse_args()
 
     data_file = args.data_path
@@ -27,7 +35,10 @@ if __name__ == "__main__":
     Rcom = args.rcom
     Rcapt = args.rcapt
     k = args.k
+    time_limit = args.timelimit
+    iter_max = args.itermax
     path_cplex = args.cplex
+    n_neighbours = args.neighbours
 
 
     if mode == "bound":
@@ -50,16 +61,21 @@ if __name__ == "__main__":
     elif mode == "genetic":
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom)
     
-        # Maxime
-
-    elif mode == "tabu":
+    elif mode == "local":
 
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k)
-        tabu = LocalSearch(instance)
-        tabu.GenerateInitialSolution()
-        tabu.is_valid(instance)
-        tabu.display(instance)
-        print("resultat tabu : ", tabu.value())
+        local_search = LocalSearch(instance)
+        #local_search.set_solution(*local_search.GenerateInitialSolution())
+        # solution, coverage = local_search.GenerateInitialSolution()
+        #local_search.improve_solution(solution, coverage)
+        #local_search.set_solution(solution, coverage)
+        # local_search.is_valid(instance)
+        # local_search.display(instance)
+        print("solution initiale : ", local_search.value())
+        local_search.search(iter_max, time_limit, n_neighbours)
+        #print("solution après amélioration : ", local_search.value())
+        local_search.is_valid(instance)
+        local_search.display(instance)
 
     elif mode == "test":
         ()
