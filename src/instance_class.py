@@ -67,7 +67,7 @@ class Instance:
             size = len(points)
         else:
             points, size = extract_points(data_file)
-        return cls(points, size, Rcapt, Rcom, k)
+        return cls(points, size, Rcapt, Rcom, k, with_float)
 
     def draw_data(self):
         for target in self.targets:
