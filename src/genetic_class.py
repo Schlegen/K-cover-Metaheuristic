@@ -215,16 +215,16 @@ class AlgoGenetic:
         print(pen)
         solutions_values.append(values)
 
-        print(f"Mean std : {self.compute_diversity_population()}")
+        print(f"\nMean std : {self.compute_diversity_population()}")
 
         # After last iteration, fix infeasible solutions AND optimize feasible ones (remove irrelevant captors)
         for i in range(len(self.population)):
             if self.population[i].penalization > 0:
                 self.population[i].reparation_heuristic(self.instance)
                 self.population[i].penalization = self.population[i].penalize_infeasibility()
-        for i in range(len(self.population)):
-            for j in range(len(self.population[i].list_captors), 0, -1):
-                self.population[i].try_to_remove_captor(j - 1)
+        # for i in range(len(self.population)):
+        for j in range(len(self.population[0].list_captors), 0, -1):
+            self.population[0].try_to_remove_captor(j - 1)
 
         self.population = deepcopy(self.init_fitness_value(self.population))
         values = [self.population[i].nb_captors for i in range(len(self.population))]
@@ -250,6 +250,7 @@ class AlgoGenetic:
 
         best_solution_index = int(np.argmin(self.fitness_values))
 
+        self.population[0].display(self.instance)
         self.population[best_solution_index].display(self.instance)
 
 
@@ -264,3 +265,4 @@ class AlgoGenetic:
 # todo
 # list hyper parameters and name them (attributes class)
 
+# [(0, 1), (0, 5), (0, 6), (0, 8), (1, 3), (1, 5), (1, 6), (1, 9), (2, 0), (2, 2), (2, 4), (2, 8), (3, 4), (4, 0), (4, 1), (5, 1), (5, 3), (5, 8), (5, 9), (6, 1), (6, 3), (6, 4), (6, 5), (7, 1), (7, 7), (7, 9), (8, 0), (8, 1), (8, 5), (9, 5), (9, 6), (9, 8), (3, 9)]
