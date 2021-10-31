@@ -144,14 +144,12 @@ class AlgoGenetic:
             r = rd.random()
             if r < proba:
                 if r < proba / 2:
+                    # 1st Tabou : Neighborhood : we switch the state of 1 target (0 --> 1 or 1--> 0)
                     solution_binary, value, pen = self.children[i].tabu_search(size=8, max_iter=16)
                 else:
-                    print("-------")
-                    print(len(self.children[i].list_captors))
-                    print(self.children[i].penalization)
+                    # 2nd Tabou : Neighborhood : we switch the state of 2 or 3 targets
+                    # (select 2 captors + 1 without captor and try permutations)
                     solution_binary, value, pen = self.children[i].tabu_search_2(size=8, max_iter=12)
-                    print(value)
-                    print(pen)
 
                 self.children[i].captors_binary = deepcopy(solution_binary)
                 self.children[i].update_list_captors()

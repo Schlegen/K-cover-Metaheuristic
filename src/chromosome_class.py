@@ -132,8 +132,6 @@ class Chromosome(Solution):
         last_captors_valid = deepcopy(self.list_captors)
         self.list_captors.pop(index_captor)  # We delete the i_th element of the original list
         solution_is_valid = self.is_valid(self.instance)  # We check if it generates a valid solution
-        if solution_is_valid:
-            print("VALID")
         if not solution_is_valid:  # If it is no longer valid, we cancel the deletion and continue
             self.list_captors = deepcopy(last_captors_valid)  # We could not deleted the captor
 
@@ -152,27 +150,26 @@ class Chromosome(Solution):
         n_components = len(connected_components)
         i_origin = 0
 
-        if n_components > 1:
-            for i in range(n_components):
-                # If it is not the component containing the origin
-                if (0, 0) in connected_components[i]:
-                    i_origin = i
-            for i in range(n_components):
-                if i != i_origin:
-                    component = connected_components[i]
-                    component_sorted = dist_point_to_list((0, 0), component)
-                    for u in component_sorted:
-                        u_coordinates = u[1]
-                        dist_component_origin_to_u = dist_point_to_list(u_coordinates,
-                                                                        connected_components[i_origin])
-                        for j in range(len(dist_component_origin_to_u)):
-                            nearest_point = dist_component_origin_to_u[j][1]
+        for i in range(n_components):
+            # If it is not the component containing the origin
+            if (0, 0) in connected_components[i]:
+                i_origin = i
+        for i in range(n_components):
+            if i != i_origin:
+                component = connected_components[i]
+                component_sorted = dist_point_to_list((0, 0), component)
+                for u in component_sorted:
+                    u_coordinates = u[1]
+                    dist_component_origin_to_u = dist_point_to_list(u_coordinates,
+                                                                    connected_components[i_origin])
+                    for j in range(len(dist_component_origin_to_u)):
+                        nearest_point = dist_component_origin_to_u[j][1]
 
-                            nearest_point_neighbours = dist_point_to_list(u_coordinates, E_com[nearest_point])
-                            for k in range(len(nearest_point_neighbours)):
-                                v_candidate = nearest_point_neighbours[k][1]
-                                if v_candidate not in self.list_captors:
-                                    return v_candidate
+                        nearest_point_neighbours = dist_point_to_list(u_coordinates, E_com[nearest_point])
+                        for k in range(len(nearest_point_neighbours)):
+                            v_candidate = nearest_point_neighbours[k][1]
+                            if v_candidate not in self.list_captors:
+                                return v_candidate
 
     def find_best_candidate_covering(self, instance, u):
         E_com = instance.neighbours_Rcom
@@ -357,7 +354,7 @@ class Chromosome(Solution):
                 )
         return candidates
 
-    def tabu_search_2(self, size=3, max_iter=10):
+    def tabu_search_2(self, size=3, max_iter=10, nb_best_neighbours=5):
         """
             Neighborhood : Within a disk of radius Rcom, we try to replace 2 captors with only 1
         Args:
@@ -378,41 +375,45 @@ class Chromosome(Solution):
         # store the best current solution and its associated value + penalization
         best_solution = [deepcopy(self.captors_binary), len(self.list_captors), self.penalization]
 
+        possible_modifications = [(0, 0, 1), (1, 0, 1), (0, 1, 1)]  # 1 = captor ; 0 = no captor
+
         while len(candidates) > 0 and i < max_iter:
-            # best neighbour : (nb_captors, target_modified, penalization)
-            best_neighbour_solution = [len(self.instance.targets) + 2, ((None, None), None), 0]
-            for targets_set in candidates:
-                current_solution = deepcopy(self)
-                u, v, w = targets_set[0][0], targets_set[0][1], targets_set[1]
-                u_index, v_index, w_index = targets.index(u), targets.index(v), targets.index(w)
-                current_solution.captors_binary[u_index] = 1 - current_solution.captors_binary[u_index]
-                current_solution.captors_binary[v_index] = 1 - current_solution.captors_binary[v_index]
-                current_solution.captors_binary[w_index] = 1 - current_solution.captors_binary[w_index]
+            # best neighbour : (nb_captors, target_modified, penalization, modification)
+            best_neighbour_solution = [len(self.instance.targets) + 2, ((None, None), None), 0, None]
+            for targets_set in candidates[:nb_best_neighbours]:
+                for modification in possible_modifications:  # we try 3 different modifications for the 3 targets
+                    current_solution = deepcopy(self)
+                    u, v, w = targets_set[0][0], targets_set[0][1], targets_set[1]
+                    u_index, v_index, w_index = targets.index(u), targets.index(v), targets.index(w)
+                    current_solution.captors_binary[u_index] = modification[0]
+                    current_solution.captors_binary[v_index] = modification[1]
+                    current_solution.captors_binary[w_index] = modification[2]
 
-                current_solution.update_list_captors()
+                    current_solution.update_list_captors()
 
-                value = current_solution.value()
-                is_valid = current_solution.is_valid(self.instance)
-                pen = 0
-                if not is_valid:
-                    pen = current_solution.penalize_infeasibility()
+                    value = current_solution.value()
+                    is_valid = current_solution.is_valid(self.instance)
+                    pen = 0
+                    if not is_valid:
+                        pen = current_solution.penalize_infeasibility()
 
-                if value + pen < best_neighbour_solution[0] + best_neighbour_solution[2]:
-                    best_neighbour_solution[0] = value
-                    best_neighbour_solution[1] = targets_set
-                    best_neighbour_solution[2] = pen
+                    if value + pen < best_neighbour_solution[0] + best_neighbour_solution[2]:
+                        best_neighbour_solution[0] = value
+                        best_neighbour_solution[1] = targets_set
+                        best_neighbour_solution[2] = pen
+                        best_neighbour_solution[3] = modification
 
             modif_targets = best_neighbour_solution[1]
             best_neighbour_value = best_neighbour_solution[0]
             best_neighbour_pen = best_neighbour_solution[2]
+            best_neighbour_modification = best_neighbour_solution[3]
 
             u, v, w = modif_targets[0][0], modif_targets[0][1], modif_targets[1]
             u_index, v_index, w_index = targets.index(u), targets.index(v), targets.index(w)
-            self.captors_binary[u_index] = 1 - self.captors_binary[u_index]
-            self.captors_binary[v_index] = 1 - self.captors_binary[v_index]
-            self.captors_binary[w_index] = 1 - self.captors_binary[w_index]
+            self.captors_binary[u_index] = best_neighbour_modification[0]
+            self.captors_binary[v_index] = best_neighbour_modification[1]
+            self.captors_binary[w_index] = best_neighbour_modification[2]
 
-            # self.display(self.instance, mark_red=modif_target)
             self.update_list_captors()
 
             list_tabu = put_item(list_tabu, modif_targets, 2 * size)
@@ -424,7 +425,7 @@ class Chromosome(Solution):
                 best_solution[1] = best_neighbour_value
                 best_solution[2] = best_neighbour_pen
 
-            neighbours = Ecom[w]
+            neighbours = Ecom[w] + [w]
             candidates = self.find_candidates_exchange_2_1(neighbours)
             for tabu_target in list_tabu:
                 if tabu_target in candidates:
@@ -443,7 +444,7 @@ class TrivialSolutionRandomized(Chromosome):
         # We consider the trivial solution : all targets get a captor
         self.list_captors = deepcopy(instance.targets)
         np.random.shuffle(self.list_captors)  # shuffle the list of captors
-        n = len(instance.targets) * 2 // 3
+        n = len(instance.targets)  # * 2 // 3
         for i in range(n - 1, -1, -1):
             self.try_to_remove_captor(i)
 

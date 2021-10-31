@@ -5,17 +5,18 @@ from utils.build_grid import extract_points_random
 import time
 
 data_folder = "data/"
-data_file = data_folder + "grille1010_1.dat"
 data_file = data_folder + "captANOR150_7_4.dat"
+data_file = data_folder + "grille1010_1.dat"
 start = time.time()
 
-instance = Instance.from_disk(data_file, Rcom=2, Rcapt=2, k=1, with_float=True)
+instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1, k=2, with_float=False)
 
-test_tabu_only = True
+test_tabu_only = False
 if test_tabu_only:
     solution1 = TrivialSolutionRandomized(instance)
     solution1.display(instance)
-    best = solution1.tabu_search(size=20, max_iter=300)[0]
+    # best = solution1.tabu_search(size=20, max_iter=300)[0]
+    best = solution1.tabu_search_2(size=20, max_iter=100)[0]
     solution1.captors_binary = best
     solution1.update_list_captors()
     solution1.display(instance)
@@ -23,7 +24,7 @@ if test_tabu_only:
     # SINON, idee : au lieu de faire des changements 1 par 1, faire 2 par 2
 
 else:
-    sol = AlgoGenetic(instance, nb_initial_solutions=8)
+    sol = AlgoGenetic(instance, nb_initial_solutions=12)
     sol.evolutionary_algorithm(nb_iter=12)
 
 
@@ -51,7 +52,7 @@ exit()
 # print(f"Solution is valid : {solution1.check_with_disk_graph(instance)}")
 # print("Solution value : ", solution1.value())
 # # solution1.display(instance)
-#
+
 # solution3 = TrivialSolutionRandomized(instance)
 # # print(solution3.is_valid(instance))
 # # print("Trivial Randomized Solution value : ", solution3.value())
