@@ -1,11 +1,13 @@
 # K-cover-Metaheuristic
-Résolution d'un problème de K-couverture minimale par métaheuristique
+In this repo, two methods are presented to solve a K-minimum cover with Metaheuristics algorithms.
+* An Evolutionary Algorithm 
+* A local search with Tabou
 
 <p align="center">
     <img src="media/example.gif" alt="drawing" width="300"/>
 </p>
-*Example de recherche de solution par Algorithme Evolutionnaire
-
+<div align="center"> *Example de recherche de solution par Algorithme Evolutionnaire*
+</div>
 
 ## How to run the project 
 To run the project you need to run 
