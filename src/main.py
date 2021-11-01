@@ -29,8 +29,10 @@ if __name__ == "__main__":
     parser.add_argument("-neighb", "--neighbours", help="Size of the neighbourhoods", type=int, default=40)
 
     #mode d'execution 
-    parser.add_argument("--stats", help="Time limit (seconds)", type=int, default=5)
-
+    parser.add_argument("--stats", action='store_true', help="Time limit (seconds)")
+    # parser.add_argument('--sum', dest='accumulate', action='store_const',
+    #                     const=sum, default=max,
+    #                     help='sum the integers (default: find the max)')
     args = parser.parse_args()
 
     data_file = args.data_path
@@ -43,6 +45,8 @@ if __name__ == "__main__":
     iter_max = args.itermax
     path_cplex = args.cplex
     n_neighbours = args.neighbours
+    stats=args.stats 
+
 
     with_float = "captANOR" in data_file
 
@@ -84,7 +88,7 @@ if __name__ == "__main__":
 
 
         # # print("solution initiale : ", local_search.value())
-        local_search.search(iter_max, time_limit, n_neighbours)
+        local_search.search(iter_max, time_limit, n_neighbours, stats=stats)
         #print("solution après amélioration : ", local_search.value())
         local_search.is_valid(instance)
         local_search.display(instance)
