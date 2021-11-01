@@ -447,7 +447,7 @@ class TrivialSolutionRandomized(Chromosome):
         # We consider the trivial solution : all targets get a captor
         self.list_captors = deepcopy(instance.targets)
         np.random.shuffle(self.list_captors)  # shuffle the list of captors
-        n = len(instance.targets)  # * 29 // 30
+        n = len(instance.targets) * 6 // 7
         for i in range(n - 1, -1, -1):
             self.try_to_remove_captor(i)
 
