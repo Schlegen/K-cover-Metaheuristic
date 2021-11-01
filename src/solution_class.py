@@ -93,7 +93,6 @@ class Solution:
 
         for edge in com_edges :
             u, v = instance.reversed_indexes[edge[0]], instance.reversed_indexes[edge[1]]
-            print(u,v)
             ax.plot([u[0], v[0]], [u[1], v[1]], c="grey")
 
     def display(self, instance, uncovered_targets=None):
