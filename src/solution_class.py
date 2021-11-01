@@ -79,11 +79,11 @@ class Solution:
     def display(self, instance):
         fig = plt.figure(f"Solution")
         ax = fig.add_subplot(111)
-        #ax.axis('equal')
         ax.set_title(f"value : {self.value()} (Rcapt={instance.Rcapt} Rcom={instance.Rcom} k={instance.k})")
         self.draw_communication(instance, ax)
         out = circles([t[0] for t in self.list_captors], [t[1] for t in self.list_captors], [instance.Rcapt for t in self.list_captors], ax, c="green", alpha=0.1, edgecolor='none')
         self.draw_main_info(instance, ax)
+        plt.gca().set_aspect('equal', adjustable='box')
         plt.show()
 
 

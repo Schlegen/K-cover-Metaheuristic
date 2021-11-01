@@ -44,4 +44,5 @@ if __name__ == "__main__":
     print(f"Computation time : {round(end - start, 2)} seconds.")
 
     # python main_genetic.py -d data/captANOR150_7_4.dat -rcom 1 -rcapt 1 -k 1 -i 20 -neighb 100
+    # python main.py -m genetic -d data/grille1010_1.dat -rcom 1 -rcapt 1 -k 1 -i 7 -neighb 100
 
