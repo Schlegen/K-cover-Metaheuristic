@@ -1,5 +1,6 @@
 from instance_class import Instance
 from solution_class import Solution, TrivialSolution, TrivialSolutionRandomized0, LocalSearch
+from genetic_class import AlgoGenetic
 import time
 from utils.errors import InputError
 from bounds import MilpApproach
@@ -25,7 +26,7 @@ if __name__ == "__main__":
     #mode localsearch
     parser.add_argument("-t", "--timelimit", help="Time limit (seconds)", type=int, default=5)
     parser.add_argument("-i", "--itermax", help="Number of iterations without improvement", type=int, default=10)
-    parser.add_argument("--neighbours", help="Size of the neighbourhoods", type=int, default=40)
+    parser.add_argument("-neighb", "--neighbours", help="Size of the neighbourhoods", type=int, default=40)
 
     args = parser.parse_args()
 
@@ -51,7 +52,7 @@ if __name__ == "__main__":
             if os.path.isfile(save_file):
                 df = pd.read_csv(save_file, sep=";")
 
-            else :
+            else:
                 df = pd.DataFrame(columns = ["file", "Rcapt", "Rcom", "lower_bound"])
             
             df = df.append({"file" : data_file, "Rcapt" : Rcapt, "Rcom" : Rcom, "lower_bound" : milp.relaxation_value}, ignore_index=True)
@@ -60,8 +61,10 @@ if __name__ == "__main__":
             raise InputError("Pas d'exécutable CPLEX renseigné")
 
     elif mode == "genetic":
-        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom)
-    
+        instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
+        sol = AlgoGenetic(instance, nb_initial_solutions=32, nb_max_neighbours=n_neighbours, proba_mutation=0.2)
+        sol.evolutionary_algorithm(nb_iter=15)
+
     elif mode == "local":
 
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
@@ -92,50 +95,3 @@ if __name__ == "__main__":
         print(sol.is_valid(instance))
         print(sol.display(instance))
         # Partie ou on mets des trucs temporaires pour les tester
-
-
-
-#    print(milp.captors)
-#instance.display()
-
-# grid_size = (4, 4)
-# data_folder = "data/"
-# data_file = data_folder + "grille44_toy.dat"
-#
-# instance = Instance.from_disk(data_file, Rcom=2)
-
-
-#######################
-# data_folder = "data/"
-# data_file = data_folder + "grille2020_1.dat"
-#
-# instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1)
-# # instance.display()
-#
-# start = time.time()
-# # solution = Solution([(1, 0), (2, 0), (3, 0), (3, 2), (3, 3), (0, 1), (0, 2), (1, 2), (1, 3)])
-# # solution1 = Solution([(1, 0), (2, 0), (3, 0), (3, 2), (3, 3), (0, 1), (0, 2), (1, 2), (1, 3), (6, 6), (6, 7)])
-# # solution1 = TrivialSolution(instance)
-# # # solution1.find_connected_components(instance)
-# # print(solution1.is_valid(instance))
-# # print("Trivial Solution value : ", solution1.value())
-# # solution1.display(instance)
-#
-# # solution3 = TrivialSolutionRandomized(instance)
-# # print(solution3.is_valid(instance))
-# # print("Trivial Randomized Solution value : ", solution3.value())
-# # solution3.display(instance)
-# solution1 = TrivialSolutionRandomized0(instance)
-# print(f"Solution is valid : {solution1.is_valid(instance)}")
-# print("Solution value :", solution1.value())
-# end = time.time()
-# print(f"Computation time : {round(end - start, 2)} seconds.")
-# solution1.display(instance)
-#
-# # solution3 = TrivialSolutionRandomized(instance)
-#
-#
-# # solution2 = MinCostFlowMethod(instance)
-# # solution2.compute_flow()
-# # solution2.build_solution()
-# # print("comparaison : ", solution1.value(), solution2.value())
