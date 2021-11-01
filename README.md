@@ -4,7 +4,7 @@ Résolution d'un problème de K-couverture minimale par métaheuristique
 ## How to run the project 
 To run the project you need to run 
 ```bash
-python  src/main.py
+python  main.py
 ```
 Needed Arguments :
 - `-m` for the method to run. Chose between `genetic, local, bounds`
@@ -23,6 +23,6 @@ Optional Hyper-Parameters (defaults to `(40, 15)`)
 - To test the Evolutionary Algorithm Method, you can run 
 
 ```bash
-python src/main.py -m genetic -d data/captANOR150_7_4.dat -rcom 2 -rcapt
+python main.py -m genetic -d data/captANOR150_7_4.dat -rcom 2 -rcapt
 t 1 -k 1 -i 10 -neighb 8
 ```
