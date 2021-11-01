@@ -1,8 +1,10 @@
 # K-cover-Metaheuristic
 Résolution d'un problème de K-couverture minimale par métaheuristique
 
-<img src="media/example.gif" alt="drawing" width="300"/>
-*Example de recherche de solution par Algorithme Evolutionnaire
+<p align="center">
+    <img src="media/example.gif" alt="drawing" width="300"/>
+    *Example de recherche de solution par Algorithme Evolutionnaire
+</p>
 
 ## How to run the project 
 To run the project you need to run 
