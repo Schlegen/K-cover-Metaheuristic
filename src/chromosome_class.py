@@ -259,7 +259,7 @@ class Chromosome(Solution):
         if (0, 0) in self.list_captors:
             self.captors_binary[-1] = 1
 
-    def tabu_search(self, size=3, max_iter=30, nb_best_neighbours=16):
+    def tabu_search(self, size=3, max_iter=30, nb_neighbours=16):
         """
             Tabu search for mutation step in Evolutionary Algorithm (1st method)
             Neighborhood with Hamming distance : uv edge if and only if distance(u,v) == 1
@@ -292,7 +292,7 @@ class Chromosome(Solution):
 
             # M2 : best neighbour : (nb_captors, target_modified, penalization)
             best_neighbour_solution = [len(self.instance.targets) + 2, None, 0]
-            for target in candidates[:nb_best_neighbours]:
+            for target in candidates[:nb_neighbours]:
                 # current_solution = deepcopy(self)
                 current_solution = Chromosome(self.instance, self.list_captors)
                 current_solution.update_captors_binary()
@@ -367,7 +367,7 @@ class Chromosome(Solution):
                 )
         return candidates
 
-    def tabu_search_2(self, size=3, max_iter=10, nb_best_neighbours=16):
+    def tabu_search_2(self, size=3, max_iter=10, nb_neighbours=16):
         """
             Tabu search for mutation step in Evolutionary Algorithm (2nd method)
             Neighborhood : Within a disk of radius Rcom, we try to replace 2 captors with only 1
@@ -394,7 +394,7 @@ class Chromosome(Solution):
         while len(candidates) > 0 and i < max_iter:
             # best neighbour : (nb_captors, target_modified, penalization, modification)
             best_neighbour_solution = [len(self.instance.targets) + 2, ((None, None), None), 0, None]
-            for targets_set in candidates[:nb_best_neighbours]:
+            for targets_set in candidates[:nb_neighbours]:
                 for modification in possible_modifications:  # we try 3 different modifications for the 3 targets
                     # current_solution = deepcopy(self)
                     current_solution = Chromosome(self.instance, self.list_captors)

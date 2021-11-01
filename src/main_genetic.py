@@ -4,66 +4,42 @@ from chromosome_class import Chromosome
 from solution_class import TrivialSolution, Solution
 from utils.build_grid import extract_points_random
 import time
+import argparse
 
 data_folder = "data/"
 data_file = data_folder + "grille1010_1.dat"
-data_file = data_folder + "captANOR100_7_4.dat"
+data_file = data_folder + "captANOR150_7_4.dat"
 data_file = data_folder + "captANOR400_7_10_2021.dat"
-start = time.time()
 
-with_float = "grille" not in data_file
-instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1, k=1, with_float=with_float)
+if __name__ == "__main__":
 
-test_tabu_only = False
-if test_tabu_only:
-    solution1 = TrivialSolutionRandomized(instance)
-    solution1.display(instance)
-    # best = solution1.tabu_search(size=20, max_iter=300)[0]
-    best = solution1.tabu_search_2(size=20, max_iter=100)[0]
-    solution1.captors_binary = best
-    solution1.update_list_captors()
-    solution1.display(instance)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--data_path", help="path to the instance", type=str, default="data/grille1010_1.dat")
+    parser.add_argument("-rcom", "--rcom", help="value of R_com", type=int, default=1)
+    parser.add_argument("-rcapt", "--rcapt", help="Value of R_capt", type=int, default=1)
+    parser.add_argument("-k", "--k", help="Value of k", type=int, default=1)
 
+    # parser.add_argument("-t", "--timelimit", help="Time limit (seconds)", type=int, default=5)
+    parser.add_argument("-i", "--itermax", help="Number of iterations without improvement", type=int, default=10)
+    parser.add_argument("--neighbours", help="Size of the neighbourhoods", type=int, default=40)
 
-else:
-    sol = AlgoGenetic(instance, nb_initial_solutions=32)
-    sol.evolutionary_algorithm(nb_iter=15)
+    args = parser.parse_args()
 
+    data_file = args.data_path
+    Rcom = args.rcom
+    Rcapt = args.rcapt
+    k = args.k
+    iter_max = args.itermax
+    n_neighbours = args.neighbours
 
-end = time.time()
-print(f"Computation time : {round(end - start, 2)} seconds.")
-exit()
-#
-# #instance.display()
-#
-# # grid_size = (4, 4)
-# # data_folder = "data/"
-# # data_file = data_folder + "grille44_toy.dat"
-# #
-# # instance = Instance.from_disk(data_file, Rcom=2)
-# # instance.display()
-#
-# # solution = Solution([(1, 0), (2, 0), (3, 0), (3, 2), (3, 3), (0, 1), (0, 2), (1, 2), (1, 3)])
-# solution1 = Solution([(1, 0), (2, 0), (3, 0), (3, 2), (3, 3), (0, 1), (0, 2), (1, 2), (1, 3), (6, 6), (6, 7)])
-# # solution1 = Solution([(1, 0), (2, 0), (3, 0), (5, 2), (5, 1), (0, 1), (0, 2), (1, 2), (1, 3)])
-# # solution1 = TrivialSolution(instance)
-# solution1.display(instance)
-# solution1.reparation_heuristic(instance)
-#
-# print("")
-# print(f"Solution is valid : {solution1.check_with_disk_graph(instance)}")
-# print("Solution value : ", solution1.value())
-# # solution1.display(instance)
+    with_float = "captANOR" in data_file
 
-# solution3 = TrivialSolutionRandomized(instance)
-# # print(solution3.is_valid(instance))
-# # print("Trivial Randomized Solution value : ", solution3.value())
-# # solution3.display(instance)
+    start = time.time()
 
+    instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
+    sol = AlgoGenetic(instance, nb_initial_solutions=32, nb_max_neighbours=n_neighbours, proba_mutation=0.2)
+    sol.evolutionary_algorithm(nb_iter=iter_max)
 
-instance = Instance.from_disk(data_file, Rcom=2, Rcapt=1)
-solution1 = TrivialSolutionRandomized(instance)
-start = time.time()
-print(solution1.check_with_disk_graph(instance))
-end = time.time()
-print(f"Computation time : {round(end - start, 2)} seconds.")
+    end = time.time()
+    print(f"Computation time : {round(end - start, 2)} seconds.")
+

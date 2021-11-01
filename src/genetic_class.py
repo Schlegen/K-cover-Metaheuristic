@@ -9,7 +9,7 @@ import time
 
 
 class AlgoGenetic:
-    def __init__(self, instance, nb_initial_solutions=8):
+    def __init__(self, instance, nb_initial_solutions, nb_max_neighbours=8, proba_mutation=0.2):
         """Class for Evolutionary Algorithm Method
         Args:
             instance (Instance) : instance we want to optimize
@@ -27,6 +27,9 @@ class AlgoGenetic:
 
         self.nb_parents_to_keep = int(nb_initial_solutions / 4) + 1  # Nb of parents we keep at population update
         self.nb_children_to_keep = nb_initial_solutions - self.nb_parents_to_keep  # Nb of children we keep
+
+        self.nb_max_neighbours = nb_max_neighbours  # Maximum size of neighborhood for mutation step
+        self.proba_mutation = proba_mutation  # Probability for a chromosome to be muted at each iteration
 
     def init_population(self, n):
         for k in range(n):
@@ -140,17 +143,19 @@ class AlgoGenetic:
             self.children.append(chromosome_2)
 
     # mutation operator
-    def mutation(self, proba=0.2):
+    def mutation(self):
         for i in range(len(self.children)):
             r = rd.random()
-            if r < proba:
-                if r < proba / 2:
+            if r < self.proba_mutation:
+                if r < self.proba_mutation / 2:
                     # 1st Tabou : Neighborhood : we switch the state of 1 target (0 --> 1 or 1--> 0)
-                    solution_binary, value, pen = self.children[i].tabu_search(size=6, max_iter=16)
+                    solution_binary, value, pen = self.children[i].tabu_search(size=6, max_iter=16,
+                                                                               nb_neighbours=self.nb_max_neighbours)
                 else:
                     # 2nd Tabou : Neighborhood : we switch the state of 2 or 3 targets
                     # (select 2 captors + 1 without captor and try permutations)
-                    solution_binary, value, pen = self.children[i].tabu_search_2(size=6, max_iter=12)
+                    solution_binary, value, pen = self.children[i].tabu_search_2(size=6, max_iter=12,
+                                                                                 nb_neighbours=self.nb_max_neighbours)
 
                 self.children[i].captors_binary = deepcopy(solution_binary)
                 self.children[i].update_list_captors()
@@ -178,8 +183,8 @@ class AlgoGenetic:
             pen = [self.population[i].penalization for i in range(len(self.population))]
 
             print(f"\n=== [ {iteration} / {nb_iter} ] ===")
-            print(values)
-            print(pen)
+            print(f"Val. : {values}")
+            print(f"Pen. : {pen}")
             solutions_values.append(values)
 
             # Roulette wheel selection
@@ -215,11 +220,11 @@ class AlgoGenetic:
         values = [self.population[i].nb_captors for i in range(len(self.population))]
         pen = [self.population[i].penalization for i in range(len(self.population))]
         print(f"\n=== [ {nb_iter} / {nb_iter} ] ===")
-        print(values)
-        print(pen)
+        print(f"Val. : {values}")
+        print(f"Pen. : {pen}")
         solutions_values.append(values)
 
-        print(f"\nMean std : {self.compute_diversity_population()}")
+        print(f"\nMean std within the final population: {round(self.compute_diversity_population(), 5)}")
 
         # After last iteration, fix infeasible solutions AND optimize feasible ones (remove irrelevant captors)
         for i in range(len(self.population)):
@@ -234,8 +239,8 @@ class AlgoGenetic:
         values = [self.population[i].nb_captors for i in range(len(self.population))]
         pen = [self.population[i].penalization for i in range(len(self.population))]
         print(f"\n=== [ After reparation heuristic + solutions enhancement] ===")
-        print(values)
-        print(pen)
+        print(f"Val. : {values}")
+        print(f"Pen. : {pen}")
         solutions_values.append(values)
 
         min_values = np.min(np.array(solutions_values), axis=1)
@@ -243,29 +248,15 @@ class AlgoGenetic:
         mean_values = np.mean(np.array(solutions_values), axis=1)
         iterations = np.arange(0, len(min_values))
 
-        plt.figure("Solution value per iteration")
+        plt.figure("Population's values per iteration")
         plt.step(iterations, min_values, label="Best")
         plt.step(iterations, max_values, label="Worst")
         plt.step(iterations, mean_values, label="Mean")
         plt.xlabel("Iteration")
-        plt.ylabel("Nb of captors")
+        plt.ylabel("Value")
         plt.legend()
         plt.show()
 
         best_solution_index = int(np.argmin(self.fitness_values))
 
         self.population[best_solution_index].display(self.instance)
-
-
-# Parameters to vary
-# transformation in tabu : change 1 bit => change 2 bits ? (bcp plus couteux attention!)
-
-
-# TEST :
-# remove reparation heuristic : now we keep invalid solutions but penalize them depending of its degree of infeasibility
-# faire des mutations à 2 ou 3 ou 4 d'un coup
-
-# todo
-# list hyper parameters and name them (attributes class)
-
-# [(0, 1), (0, 5), (0, 6), (0, 8), (1, 3), (1, 5), (1, 6), (1, 9), (2, 0), (2, 2), (2, 4), (2, 8), (3, 4), (4, 0), (4, 1), (5, 1), (5, 3), (5, 8), (5, 9), (6, 1), (6, 3), (6, 4), (6, 5), (7, 1), (7, 7), (7, 9), (8, 0), (8, 1), (8, 5), (9, 5), (9, 6), (9, 8), (3, 9)]
