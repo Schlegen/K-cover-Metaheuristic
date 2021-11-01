@@ -78,15 +78,13 @@ class Solution:
             print(u,v)
             ax.plot([u[0], v[0]], [u[1], v[1]], c="grey")
 
-    def display(self, instance, uncovered_targets=None):
+    def display(self, instance):
         fig = plt.figure(f"Solution")
         ax = fig.add_subplot(111)
         ax.set_title(f"value : {self.value()} (Rcapt={instance.Rcapt} Rcom={instance.Rcom} k={instance.k})")
         self.draw_communication(instance, ax)
         out = circles([t[0] for t in self.list_captors], [t[1] for t in self.list_captors], [instance.Rcapt for t in self.list_captors], ax, c="green", alpha=0.1, edgecolor='none')
         self.draw_main_info(instance, ax)
-        if not self.valid and uncovered_targets is not None:
-            self.draw_uncovered_targets(uncovered_targets, ax)
         plt.show()
 
 
