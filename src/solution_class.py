@@ -58,29 +58,11 @@ class Solution:
         return len(self.list_captors)
 
     def draw_main_info(self, instance, ax):
-        # TODO : A enrichir pour afficher les liens de communication et de captation
-        if not instance.is_float:
-            for i in range(instance.n):
-                for j in range(instance.m):
-                    if instance.grid[i, j] == 1:
-                        ax.scatter(i, j, marker="+", color='blue')
-                    elif instance.grid[i, j] == 2:
-                        ax.scatter(i, j, marker="o", color='black')
-
-            for captor in self.list_captors:
-                ax.scatter(captor[0], captor[1], marker="D", color='orange')
-
-        else:
-            ax.scatter(0, 0, marker="o", color='black')
-            for target in instance.targets:
-                ax.scatter(target[0], target[1], marker="+", color='blue')
-            for captor in self.list_captors:
-                ax.scatter(captor[0], captor[1], marker="D", color='orange')
-
-    @staticmethod
-    def draw_uncovered_targets(targets, ax):
-        for target in targets:
-            ax.scatter(target[0], target[1], marker="+", color='red')
+        ax.scatter(0, 0, marker="o", color='black')
+        for target in instance.targets:
+            ax.scatter(target[0], target[1], marker="+", color='blue')
+        for captor in self.list_captors:
+            ax.scatter(captor[0], captor[1], marker="D", color='orange')
 
     def display(self, instance, uncovered_targets=None):
         fig = plt.figure(f"Solution")
@@ -91,6 +73,7 @@ class Solution:
         if not self.valid and uncovered_targets is not None:
             self.draw_uncovered_targets(uncovered_targets, ax)
         plt.show()
+
 
 class TrivialSolution(Solution):
 
@@ -112,6 +95,7 @@ class TrivialSolution(Solution):
             else:
                 # If it is not, we cancel the deletion and continue
                 self.list_captors = deepcopy(last_captors_valid)
+
 
 class TrivialSolutionRandomized0(Solution):
 
@@ -156,18 +140,19 @@ class TrivialSolutionRandomized0(Solution):
             
         return 0
 
+
 class LocalSearch(Solution):
 
     def __init__(self, instance):
         self.instance = instance
-        #construction de la matrice d'adjacence de 
+        # construction de la matrice d'adjacence de
         self.list_captors = []
 
     def GenerateInitialSolution(self):
         solution = np.zeros(self.instance.n_targets+1, dtype=np.int64)
         solution[0] = 1
 
-        #tableau notant le nombre de capteurs manquant à chaque cible (peut être négatif en cas d'exces)
+        # tableau notant le nombre de capteurs manquant à chaque cible (peut être négatif en cas d'exces)
         coverage_vect = self.instance.k * np.ones(self.instance.n_targets+1, dtype=np.int64)
         coverage_vect[0] = 0
         i = 0
@@ -184,7 +169,6 @@ class LocalSearch(Solution):
                 raise ConvergenceError("Unable to generate a feasible initial solution")
 
             solution[selected_captor] = 1
-
 
             # print(self.instance.E_com)
             # print("a", selected_captor)
@@ -456,6 +440,7 @@ class LocalSearch(Solution):
         plt.plot(np.arange(n_iter), tab_best_solution_value, label="Best Neighbour")
         plt.plot(np.arange(n_iter), tab_best_neighbour_fitness, label="Best Solution")
         plt.show()
+
 
 class TabuSearch(LocalSearch):
     def __init__(self, instance):

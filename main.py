@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("-cplex", "--cplex", help="Path to the cplex executable", type=str, default="")
 
     #mode localsearch
-    parser.add_argument("-t", "--timelimit", help="Time limit (seconds)", type=int, default=5)
+    parser.add_argument("-t", "--timelimit", help="Time limit (seconds)", type=int, default=200)
     parser.add_argument("-i", "--itermax", help="Number of iterations without improvement", type=int, default=10)
     parser.add_argument("-neighb", "--neighbours", help="Size of the neighbourhoods", type=int, default=40)
 
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     elif mode == "genetic":
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
         sol = AlgoGenetic(instance, nb_initial_solutions=32, nb_max_neighbours=n_neighbours, proba_mutation=0.2)
-        sol.evolutionary_algorithm(nb_iter=15)
+        final_value = sol.run_algorithm(nb_iter=iter_max, time_limit=time_limit, show_final_solution=False)
 
     elif mode == "local":
 

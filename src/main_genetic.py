@@ -38,10 +38,10 @@ if __name__ == "__main__":
 
     instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
     sol = AlgoGenetic(instance, nb_initial_solutions=32, nb_max_neighbours=n_neighbours, proba_mutation=0.2)
-    sol.evolutionary_algorithm(nb_iter=iter_max, time_limit=200)
+    sol.run_algorithm(nb_iter=iter_max, time_limit=200)
 
     end = time.time()
     print(f"Computation time : {round(end - start, 2)} seconds.")
 
-    # python main_genetic.py -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 10 -neighb 8
+    # python main_genetic.py -d data/grille1010_1.dat -rcom 1 -rcapt 1 -k 1 -i 6 -neighb 8
 

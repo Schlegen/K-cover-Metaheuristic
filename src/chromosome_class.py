@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import random as rd
 
 import networkx as nx
-from utils.math_utils import dist, dist_point_to_list
+from utils.math_utils import dist_point_to_list
 from utils.fifo_queue import put_item
 import time
 
@@ -32,29 +32,18 @@ class Chromosome(Solution):
     def value(self):
         return len(self.list_captors)
 
-    def draw_main_info(self, instance):
-        # TODO : A enrichir pour afficher les liens de communication et de captation
-        for target in instance.targets:
-            plt.scatter(target[0], target[1], marker="+", color='blue')
-        plt.scatter(instance.source[0], instance.source[1], marker="o", color='black')
-
-        # caution : we do not distinguish the origin if it has a captor on it ?
-        for captor in self.list_captors:
-            plt.scatter(captor[0], captor[1], marker="D", color='orange')
-
-    @staticmethod
-    def draw_uncovered_targets(targets):
-        for target in targets:
-            plt.scatter(target[0], target[1], marker="+", color='red')
-
-    def display(self, instance, uncovered_targets=None, mark_red=None):
-        plt.figure(f"Solution of value {len(self.list_captors) + self.penalization}")
-        self.draw_main_info(instance)
-        if mark_red:
-            plt.scatter(mark_red[0], mark_red[1], marker="+", color='red')
-        if not self.valid and uncovered_targets is not None:
-            self.draw_uncovered_targets(uncovered_targets)
-        plt.show()
+    # def draw_main_info(self, instance):
+    #     for target in instance.targets:
+    #         plt.scatter(target[0], target[1], marker="+", color='blue')
+    #     plt.scatter(instance.source[0], instance.source[1], marker="o", color='black')
+    #
+    #     for captor in self.list_captors:
+    #         plt.scatter(captor[0], captor[1], marker="D", color='orange')
+    #
+    # def display(self, instance):
+    #     plt.figure(f"Solution of value {len(self.list_captors) + self.penalization}")
+    #     self.draw_main_info(instance)
+    #     plt.show()
 
     def disk_graph_captors(self, instance):
         """
@@ -221,7 +210,6 @@ class Chromosome(Solution):
             not_covered_targets = self.find_not_covered_targets(instance)
             if verbose:
                 print(f"- {len(not_covered_targets)} targets not sufficiently covered.")
-            # self.display(instance, not_covered_targets)
 
         connected_components = self.find_connected_components(instance)
         if verbose:
@@ -315,7 +303,6 @@ class Chromosome(Solution):
             modif_index = targets.index(modif_target)
             best_neighbour_value = best_neighbour_solution[0]
             best_neighbour_pen = best_neighbour_solution[2]
-            # self.display(self.instance, mark_red=modif_target)
             self.captors_binary[modif_index] = 1 - self.captors_binary[modif_index]
             self.update_list_captors()
 

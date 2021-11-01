@@ -1,6 +1,5 @@
 from instance_class import Instance
-from solution_class import Solution
-from chromosome_class import Chromosome, TrivialSolutionRandomized
+from chromosome_class import TrivialSolutionRandomized
 import numpy as np
 import random as rd
 from copy import deepcopy
@@ -169,7 +168,7 @@ class AlgoGenetic:
         return standard_deviation_mean
 
     # main function
-    def evolutionary_algorithm(self, nb_iter, time_limit=900):
+    def run_algorithm(self, nb_iter, time_limit=900, show_final_solution=True):
         solutions_values = list()
         start = time.time()
         iteration = 0
@@ -234,7 +233,10 @@ class AlgoGenetic:
         for i in range(len(self.population)):
             if self.population[i].penalization > 0:
                 self.population[i].reparation_heuristic(self.instance)
+
+                # We check the solution is now valid (penalization = 0)
                 self.population[i].penalization = self.population[i].penalize_infeasibility()
+
         for i in range(len(self.population)):
             for j in range(len(self.population[i].list_captors), 0, -1):
                 self.population[i].try_to_remove_captor(j - 1)
@@ -264,4 +266,7 @@ class AlgoGenetic:
         best_solution_index = int(np.argmin(self.fitness_values))
 
         print(f"\nBest Solution value : {self.fitness_values[best_solution_index]}")
-        self.population[best_solution_index].display(self.instance)
+        if show_final_solution:
+            self.population[best_solution_index].display(self.instance)
+
+        return self.fitness_values[best_solution_index]
