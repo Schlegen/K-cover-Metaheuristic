@@ -23,13 +23,11 @@ Optional Hyper-Parameters (defaults to `(40, 15)`)
 - To test the Evolutionary Algorithm Method, you can run 
 
 ```bash
-python main.py -m genetic -d data/captANOR150_7_4.dat -rcom 2 -rcapt
-t 1 -k 1 -i 10 -neighb 8
+python main.py -m genetic -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 10 -neighb 8
 ```
 
 - To test the Local Search Method, you can run 
 
 ```bash
-python main.py -m local -d data/captANOR150_7_4.dat -rcom 2 -rcapt
-t 1 -k 1 -i 10 -neighb 40 -t 120
+python main.py -m local -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 10 -neighb 40 -t 120
 ```

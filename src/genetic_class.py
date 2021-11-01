@@ -1,6 +1,5 @@
 from instance_class import Instance
-from solution_class import Solution
-from chromosome_class import Chromosome, TrivialSolutionRandomized
+from chromosome_class import TrivialSolutionRandomized
 import numpy as np
 import random as rd
 from copy import deepcopy
@@ -169,9 +168,11 @@ class AlgoGenetic:
         return standard_deviation_mean
 
     # main function
-    def evolutionary_algorithm(self, nb_iter):
+    def run_algorithm(self, nb_iter, time_limit=900, show_final_solution=True):
         solutions_values = list()
-        for iteration in range(nb_iter):
+        start = time.time()
+        iteration = 0
+        while iteration < nb_iter and time.time() - start < time_limit:
             # Init fitness values
             self.fitness_values = list()
             self.cumulative_fitness_values = list()
@@ -216,6 +217,8 @@ class AlgoGenetic:
 
             self.children = list()
 
+            iteration += 1
+
         self.population = deepcopy(self.init_fitness_value(self.population))
         values = [self.population[i].nb_captors for i in range(len(self.population))]
         pen = [self.population[i].penalization for i in range(len(self.population))]
@@ -230,7 +233,10 @@ class AlgoGenetic:
         for i in range(len(self.population)):
             if self.population[i].penalization > 0:
                 self.population[i].reparation_heuristic(self.instance)
+
+                # We check the solution is now valid (penalization = 0)
                 self.population[i].penalization = self.population[i].penalize_infeasibility()
+
         for i in range(len(self.population)):
             for j in range(len(self.population[i].list_captors), 0, -1):
                 self.population[i].try_to_remove_captor(j - 1)
@@ -259,4 +265,8 @@ class AlgoGenetic:
 
         best_solution_index = int(np.argmin(self.fitness_values))
 
-        self.population[best_solution_index].display(self.instance)
+        print(f"\nBest Solution value : {self.fitness_values[best_solution_index]}")
+        if show_final_solution:
+            self.population[best_solution_index].display(self.instance)
+
+        return self.fitness_values[best_solution_index]
