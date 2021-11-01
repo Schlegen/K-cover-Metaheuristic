@@ -169,9 +169,11 @@ class AlgoGenetic:
         return standard_deviation_mean
 
     # main function
-    def evolutionary_algorithm(self, nb_iter):
+    def evolutionary_algorithm(self, nb_iter, time_limit=900):
         solutions_values = list()
-        for iteration in range(nb_iter):
+        start = time.time()
+        iteration = 0
+        while iteration < nb_iter and time.time() - start < time_limit:
             # Init fitness values
             self.fitness_values = list()
             self.cumulative_fitness_values = list()
@@ -216,6 +218,8 @@ class AlgoGenetic:
 
             self.children = list()
 
+            iteration += 1
+
         self.population = deepcopy(self.init_fitness_value(self.population))
         values = [self.population[i].nb_captors for i in range(len(self.population))]
         pen = [self.population[i].penalization for i in range(len(self.population))]
@@ -259,4 +263,5 @@ class AlgoGenetic:
 
         best_solution_index = int(np.argmin(self.fitness_values))
 
+        print(f"\nBest Solution value : {self.fitness_values[best_solution_index]}")
         self.population[best_solution_index].display(self.instance)

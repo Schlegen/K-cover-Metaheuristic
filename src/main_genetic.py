@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     # parser.add_argument("-t", "--timelimit", help="Time limit (seconds)", type=int, default=5)
     parser.add_argument("-i", "--itermax", help="Number of iterations without improvement", type=int, default=10)
-    parser.add_argument("--neighbours", help="Size of the neighbourhoods", type=int, default=40)
+    parser.add_argument("-neighb", "--neighbours", help="Size of the neighbourhoods", type=int, default=10)
 
     args = parser.parse_args()
 
@@ -38,8 +38,10 @@ if __name__ == "__main__":
 
     instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
     sol = AlgoGenetic(instance, nb_initial_solutions=32, nb_max_neighbours=n_neighbours, proba_mutation=0.2)
-    sol.evolutionary_algorithm(nb_iter=iter_max)
+    sol.evolutionary_algorithm(nb_iter=iter_max, time_limit=200)
 
     end = time.time()
     print(f"Computation time : {round(end - start, 2)} seconds.")
+
+    # python main_genetic.py -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 10 -neighb 8
 
