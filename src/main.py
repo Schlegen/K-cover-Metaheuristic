@@ -28,6 +28,9 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--itermax", help="Number of iterations without improvement", type=int, default=10)
     parser.add_argument("-neighb", "--neighbours", help="Size of the neighbourhoods", type=int, default=40)
 
+    #mode d'execution 
+    parser.add_argument("--stats", help="Time limit (seconds)", type=int, default=5)
+
     args = parser.parse_args()
 
     data_file = args.data_path

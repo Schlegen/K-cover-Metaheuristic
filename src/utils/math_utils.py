@@ -83,9 +83,9 @@ def spanning_tree_subgraph(adj, subgraph):
             if not added_to_stack[v]:
                 added_to_stack[v] = True
                 stack.append(v)
+                list_edges.append((subgraph[u],subgraph[v]))
                 added_vertices += 1
             idx_v += 1
-    #print("composante_connexe :", added_to_stack.astype(int))
     return list_edges
 
 
