@@ -3,7 +3,7 @@ from operator import ne
 from numpy.lib.function_base import insert, select
 from instance_class import Instance
 from utils.errors import Error, InputError, ConvergenceError
-from utils.math_utils import subgraph_is_connex, n_connex_components
+from utils.math_utils import subgraph_is_connex, n_connex_components, spanning_tree_subgraph
 import math as mh
 import numpy as np
 import matplotlib.pyplot as plt
@@ -64,11 +64,26 @@ class Solution:
         for captor in self.list_captors:
             ax.scatter(captor[0], captor[1], marker="D", color='orange')
 
+    
+    def draw_communication(self, instance, ax):
+        solution = np.zeros(instance.n_targets+1, dtype=np.int64)
+        solution[0] = 1
+        for captor in self.list_captors:
+            solution[instance.indexes[captor]] = 1
+
+        com_edges = spanning_tree_subgraph(instance.E_com, np.argwhere(solution).flatten())
+
+        for edge in com_edges :
+            u, v = instance.reversed_indexes[edge[0]], instance.reversed_indexes[edge[1]]
+            print(u,v)
+            ax.plot([u[0], v[0]], [u[1], v[1]], c="grey")
+
     def display(self, instance, uncovered_targets=None):
         fig = plt.figure(f"Solution")
         ax = fig.add_subplot(111)
         ax.set_title(f"value : {self.value()} (Rcapt={instance.Rcapt} Rcom={instance.Rcom} k={instance.k})")
-        out = circles([t[0] for t in self.list_captors], [t[1] for t in self.list_captors], [instance.Rcom for t in self.list_captors], ax, c="green", alpha=0.1, edgecolor='none')
+        self.draw_communication(instance, ax)
+        out = circles([t[0] for t in self.list_captors], [t[1] for t in self.list_captors], [instance.Rcapt for t in self.list_captors], ax, c="green", alpha=0.1, edgecolor='none')
         self.draw_main_info(instance, ax)
         if not self.valid and uncovered_targets is not None:
             self.draw_uncovered_targets(uncovered_targets, ax)
@@ -445,9 +460,3 @@ class LocalSearch(Solution):
 class TabuSearch(LocalSearch):
     def __init__(self, instance):
         super().__init__(instance)
-
-
-
-
-
-

@@ -59,6 +59,36 @@ def subgraph_is_connex(adj, subgraph):
     #print("composante_connexe :", added_to_stack.astype(int))
     return added_vertices == n
 
+def spanning_tree_subgraph(adj, subgraph):
+    """ renvoie les arcs composants un arbre couvrant de la composante connexe d'un sous-graphe contenant 0 
+
+        adj (np.array): matrice carrée à valeur dans 0 1 représentant la matrice d'adjacence
+        subgraph (liste): tableau des indices des sommets conservés 
+    """
+
+    sub_adj = adj[np.ix_(subgraph, subgraph)]
+    stack = [0]
+    n = subgraph.size
+    added_to_stack = np.zeros(subgraph.size, dtype=bool)
+    added_to_stack[0] = True
+    added_vertices = 1
+    list_edges = []
+    while len(stack) > 0 and added_vertices < n:
+        u = stack.pop()
+        neighbours = np.argwhere(sub_adj[u].flatten()).flatten()
+        n_neighbours = neighbours.size
+        idx_v = 0
+        while idx_v < n_neighbours and added_vertices < n:
+            v  = neighbours[idx_v]
+            if not added_to_stack[v]:
+                added_to_stack[v] = True
+                stack.append(v)
+                added_vertices += 1
+            idx_v += 1
+    #print("composante_connexe :", added_to_stack.astype(int))
+    return list_edges
+
+
 def n_connex_components(adj, subgraph):
     sub_adj = adj[np.ix_(subgraph, subgraph)]
     stack = []
