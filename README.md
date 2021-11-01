@@ -6,7 +6,7 @@ In this repo, two methods are presented to solve a K-minimum cover with Metaheur
 <p align="center">
     <img src="media/example.gif" alt="drawing" width="300"/>
 </p>
-<div align="center"> *Example de recherche de solution par Algorithme Evolutionnaire*
+<div align="center"> Evolution of the best current solution at each iteration, with Evolutionary Algorithm
 </div>
 
 ## How to run the project 
