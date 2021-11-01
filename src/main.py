@@ -3,7 +3,7 @@ from solution_class import Solution, TrivialSolution, TrivialSolutionRandomized0
 from genetic_class import AlgoGenetic
 import time
 from utils.errors import InputError
-from bounds import MilpApproach
+from milp_class import MilpApproach
 import argparse
 import pandas as pd
 import os
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
         local_search = LocalSearch(instance)
-        local_search.set_solution(*local_search.GenerateInitialSolution())
+        #local_search.set_solution(*local_search.GenerateInitialSolution())
         # print("2")
         # #local_search.coverage_as_matrix(local_search.coverage_vect)
         # # solution, coverage = local_search.GenerateInitialSolution()
@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
 
         # # print("solution initiale : ", local_search.value())
-        #local_search.search(iter_max, time_limit, n_neighbours)
+        local_search.search(iter_max, time_limit, n_neighbours)
         #print("solution après amélioration : ", local_search.value())
         local_search.is_valid(instance)
         local_search.display(instance)
