@@ -4,7 +4,7 @@ In this repo, two methods are presented to solve a K-minimum cover with Metaheur
 * A local search with Tabou
 
 <p align="center">
-    <img src="media/example.gif" alt="drawing" width="300"/>
+    <img src="media/example.gif" alt="drawing" width="500"/>
 </p>
 <div align="center"> Evolution of the best current solution at each iteration, with Evolutionary Algorithm
 </div>
