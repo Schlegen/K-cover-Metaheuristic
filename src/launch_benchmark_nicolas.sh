@@ -11,7 +11,7 @@ do
             tmp=${file#*/}   # remove prefix ending in "/"
             log_name=${tmp%.*}   # remove suffix starting with "."
             echo $file $1 $2 $k
-            python3 main.py -m "localsearch" -d $file -rcapt $1 -rcom $2 -k $k -s "saves/scores_benchmark_nicolas.csv" -t 60 --optim> "logs/logs_ls/${log_name}_$1_$2_$k.txt"
+            python3 main.py -m "localsearch" -d $file -rcapt $1 -rcom $2 -k $k -s "saves/scores_benchmark_nicolas.csv" -t 10 --optim> "logs/logs_ls/${log_name}_$1_$2_$k.txt"
             python3 main.py -m "genetic" -d $file -rcapt $1 -rcom $2 -k $k -s "saves/scores_benchmark_nicolas.csv" -t 60 --optim> "logs/logs_genetic/${log_name}_$1_$2_$k.txt"
         done
     done

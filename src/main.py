@@ -106,21 +106,22 @@ if __name__ == "__main__":
                 df.at[index, "mean value genetic"] = round(avg_val, 2)
                 df.at[index, "std value genetic"] = round(std_val, 2)
                 df.at[index, "mean CPU time genetic"] = round(avg_time, 2)
+                df.reset_index(inplace=True)
 
 
             else:
+                df.reset_index(inplace=True)
                 df = df.append({"Instance" : data_file, "Rcapt" : Rcapt, "Rcom" : Rcom, "k" : k,
                     "mean CPU time genetic": round(avg_time, 2), "min value genetic" : min_val,
                     "mean value genetic" : round(avg_val, 2), "std value genetic" : round(std_val, 2),
                     "number of launchs genetic" : launch},
                     ignore_index=True)
 
-            df.to_csv(save_file, sep=";")
+            df.to_csv(save_file, sep=";", index=False)
 
 
 
         else:
-
             sol = AlgoGenetic(instance, nb_initial_solutions=32, nb_max_neighbours=n_neighbours, proba_mutation=0.2)
             final_value = sol.run_algorithm(nb_iter=iter_max, time_limit=time_limit, show_final_solution=stats)
             end = time.time()
@@ -159,14 +160,15 @@ if __name__ == "__main__":
                 df.at[index, "mean value localsearch"] = round(avg_val, 2)
                 df.at[index, "std value localsearch"] = round(std_val, 2)
                 df.at[index, "mean CPU time localsearch"] = round(avg_time, 2)
+                df.reset_index(inplace=True)
 
             else:
-                df = df.append({"Instance" : data_file, "Rcapt" : Rcapt, "Rcom" : Rcom, "k" : k,"valeur genetique" : None,
-                 "temps CPU genetique": None,	"number of launchs localsearch"	: launch,
+                df.reset_index(inplace=True)
+                df = df.append({"Instance" : data_file, "Rcapt" : Rcapt, "Rcom" : Rcom, "k" : k,
+                    "number of launchs localsearch"	: launch,
                   "min value localsearch" : min_val, "mean value localsearch" : round(avg_val, 2), "std value localsearch" : round(std_val, 2),
-                  "mean CPU time localsearch" : round(avg_time,2)} , ignore_index=True)
-
-            df.to_csv(save_file, sep=";")
+                  "mean CPU time localsearch" : round(avg_time,2)}, ignore_index=True)
+            df.to_csv(save_file, sep=";", index=False)
 
         else: #mode classique
             local_search = LocalSearch(instance)
