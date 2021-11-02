@@ -1,3 +1,21 @@
-Instance;Rcapt;Rcom;k;mean CPU time genetic;min value genetic;mean value genetic;std value genetic;number of launchs localsearch;min value localsearch;mean value localsearch;std value localsearch;mean CPU time localsearch
-data/grille1010_1.dat;1.0;3.0;1.0;;;;;20;25;25.95;0.22;0.44
-data/grille1010_1.dat;1.0;2.0;1.0;;;;;14;30;31.29;0.7;0.71
+Instance;Rcapt;Rcom;k;mean CPU time genetic;min value genetic;mean value genetic;std value genetic;number of launchs localsearch;min value localsearch;mean value localsearch;std value localsearch;mean CPU time localsearch;number of launchs genetic
+data/captANOR150_7_4.dat;1;1;1;29.66;35.0;36.5;0.96;20;33;34.45;0.8;0.89;6.0
+data/captANOR150_7_4.dat;1;2;1;60.89;19.0;19.33;0.47;20;22;22.0;0.0;0.46;6.0
+data/captANOR150_7_4.dat;2;2;1;43.07;8.0;8.83;0.37;20;9;9.0;0.0;0.33;6.0
+data/captANOR150_7_4.dat;2;3;1;52.78;6.0;6.5;0.5;20;7;7.55;0.5;0.45;6.0
+data/captANOR150_7_4.dat;1;1;2;31.82;48.0;49.5;0.96;20;47;47.85;0.36;0.79;6.0
+data/captANOR150_7_4.dat;1;2;2;101.0;40.0;42.0;1.0;20;40;41.85;0.48;0.54;6.0
+data/captANOR150_7_4.dat;2;2;2;70.6;13.0;13.17;0.37;20;12;12.25;0.43;0.6;6.0
+data/captANOR150_7_4.dat;2;3;2;93.73;12.0;12.67;0.47;20;11;12.45;0.97;0.67;6.0
+data/captANOR150_7_4.dat;1;1;3;57.21;64.0;64.5;0.5;20;63;63.95;0.22;0.97;6.0
+data/captANOR150_7_4.dat;1;2;3;202.97;64.0;64.33;0.47;20;62;62.0;0.0;0.62;3.0
+data/captANOR150_7_4.dat;2;2;3;89.97;18.0;19.17;0.69;20;17;18.25;0.62;0.56;6.0
+data/captANOR150_7_4.dat;2;3;3;101.39;18.0;18.83;0.69;20;18;19.45;1.12;0.71;6.0
+data/captANOR400_7_10_2021.dat;1;2;1;318.15;24.0;24.5;0.5;20;25;25.7;0.46;1.27;2.0
+data/captANOR400_7_10_2021.dat;2;2;1;125.25;9.0;10.0;0.63;20;8;9.1;0.54;0.69;5.0
+data/captANOR400_7_10_2021.dat;1;2;2;870.77;47.0;47.0;0.0;20;46;47.8;0.51;1.26;1.0
+data/captANOR400_7_10_2021.dat;2;2;2;314.57;15.0;15.5;0.5;20;14;15.0;0.71;0.81;2.0
+data/captANOR900_14_20_2021.dat;2;2;1;383.1;41.0;42.0;1.0;20;38;39.8;0.51;5.56;2.0
+data/captANOR900_14_20_2021.dat;2;3;1;688.0;30.0;30.0;0.0;20;27;29.0;1.05;10.05;1.0
+data/captANOR900_14_20_2021.dat;2;2;2;754.65;57.0;57.0;0.0;20;51;52.85;0.48;6.34;1.0
+data/captANOR900_14_20_2021.dat;2;3;2;740.59;52.0;52.0;0.0;20;52;52.7;0.46;10.91;1.0
