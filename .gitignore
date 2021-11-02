@@ -2,5 +2,7 @@
 __pycache__/
 *.idea
 test_local.py
-log.txt
+src/log.txt
 */logs/logs_bounds/*
+src/test.sh
+src/logs/*

@@ -188,6 +188,7 @@ class Chromosome(Solution):
             for target in self.instance.neighbours_Rcom[target_to_cover]:
                 if target not in self.list_captors:
                     return target
+        return None
 
     def reparation_heuristic(self, instance, verbose=False):
         """
@@ -206,8 +207,11 @@ class Chromosome(Solution):
         while len(not_covered_targets) > 0:
             # v = self.find_best_candidate_covering(instance, v)
             v = self.find_best_candidate_covering_v2(not_covered_targets)
-            self.list_captors.append(v)
-            not_covered_targets = self.find_not_covered_targets(instance)
+            if v is not None:
+                self.list_captors.append(v)
+                not_covered_targets = self.find_not_covered_targets(instance)
+            else:
+                not_covered_targets = list()  # Solution is unfeasible so we force to stop the reparation
             if verbose:
                 print(f"- {len(not_covered_targets)} targets not sufficiently covered.")
 
@@ -447,7 +451,7 @@ class TrivialSolutionRandomized(Chromosome):
         # We consider the trivial solution : all targets get a captor
         self.list_captors = deepcopy(instance.targets)
         np.random.shuffle(self.list_captors)  # shuffle the list of captors
-        n = len(instance.targets) * 6 // 7
+        n = len(instance.targets)  # * 19 // 20
         for i in range(n - 1, -1, -1):
             self.try_to_remove_captor(i)
 

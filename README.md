@@ -1,7 +1,7 @@
 # K-cover-Metaheuristic
 In this repo, two methods are presented to solve a K-minimum cover with Metaheuristics algorithms.
 * An Evolutionary Algorithm 
-* A local search with Tabou
+* A Local Search
 
 <p align="center">
     <img src="media/example.gif" alt="drawing" width="500"/>
@@ -27,15 +27,18 @@ Optional Hyper-Parameters (defaults to `(40, 15)`)
 - `-neighb` for the maximum number of neighbours (for local searchs)
 - `-i` for the maximum number of iterations (int)
 
+Optional Parameters (defaults to `False`)
+- `--stats` : add this option if you want output plots to be showed after the search
+- `--optim` : only used in `bash` files, to run multiple instances in a row
+
 ### Command examples per method
 - To test the Evolutionary Algorithm Method, you can run 
 
 ```bash
-python main.py -m genetic -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 10 -neighb 8
+python main.py -m genetic -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 10 -neighb 40 --stats
 ```
 
 - To test the Local Search Method, you can run 
 
 ```bash
-python main.py -m local -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 10 -neighb 40 -t 120
-```
+python main.py -m localsearch -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 15 -neighb 40 -t 400 --stats```

@@ -7,12 +7,12 @@ import time
 import argparse
 
 data_folder = "data/"
-data_file = data_folder + "grille1010_1.dat"
 data_file = data_folder + "captANOR150_7_4.dat"
 data_file = data_folder + "captANOR400_7_10_2021.dat"
+data_file = data_folder + "captANOR900_14_20_2021.dat"
+data_file = data_folder + "grille1010_1.dat"
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data_path", help="path to the instance", type=str, default="data/grille1010_1.dat")
     parser.add_argument("-rcom", "--rcom", help="value of R_com", type=int, default=1)
@@ -37,12 +37,13 @@ if __name__ == "__main__":
     start = time.time()
 
     instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
-    sol = AlgoGenetic(instance, nb_initial_solutions=24, nb_max_neighbours=n_neighbours, proba_mutation=0.3)
-    sol.run_algorithm(nb_iter=iter_max, time_limit=200)
+    sol = AlgoGenetic(instance, nb_initial_solutions=16, nb_max_neighbours=n_neighbours,
+                      proba_mutation=0.25, nb_iter_tabou=5, size_tabou=3)
+    sol.run_algorithm(nb_iter=iter_max, time_limit=500)
 
     end = time.time()
     print(f"Computation time : {round(end - start, 2)} seconds.")
 
-    # python main_genetic.py -d data/captANOR150_7_4.dat -rcom 1 -rcapt 1 -k 1 -i 20 -neighb 100
-    # python main.py -m genetic -d data/grille1010_1.dat -rcom 1 -rcapt 1 -k 1 -i 7 -neighb 100
+    # python main_genetic.py -d data/captANOR150_7_4.dat -rcom 1 -rcapt 1 -k 3 -i 15 -neighb 40
+    # python main.py -m genetic -d data/captANOR150_7_4.dat -rcom 2 -rcapt 2 -k 1 -i 15 -neighb 40
 
