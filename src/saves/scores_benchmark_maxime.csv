@@ -1,0 +1,3 @@
+;Unnamed: 0;mean CPU time genetic;min value genetic;mean value genetic;std value genetic;mean CPU time genetic.1;number of launchs localsearch;min value localsearch;mean value localsearch;std value localsearch;mean CPU time localsearch;number of launchs genetic;Instance;Rcapt;Rcom;k;temps CPU genetique;valeur genetique
+0;0.0;16.33;36.0;38.6;1.56;;20.0;38.0;38.0;0.0;0.67;10.0;;;;;;
+1;;;;;;;20.0;30.0;31.45;0.67;0.67;;data/grille1010_1.dat;1.0;2.0;1.0;;

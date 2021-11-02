@@ -182,13 +182,7 @@ class LocalSearch(Solution):
 
             solution[selected_captor] = 1
 
-            # print(self.instance.E_com)
-            # print("a", selected_captor)
-            # print("b", remaining_degrees)
-            # print("c", connex_neighbours)
-            # print("d", connex_neighbours * remaining_degrees * (1 - solution))
-            # print("e", solution)
-            # print("")
+
             # mise à jour des sommets captés
             coverage_vect -= self.instance.E_capt[selected_captor].flatten()
 
@@ -391,7 +385,7 @@ class LocalSearch(Solution):
 
     def search(self, iter_max, time_limit, n_neighbours, stats=False):
         solution, coverage_vect = self.GenerateInitialSolution() # solution realisable
-        #self.improve_solution(solution, coverage_vect)
+        self.improve_solution(solution, coverage_vect)
         n_iter = 0
 
         begin = time.time()
@@ -405,7 +399,6 @@ class LocalSearch(Solution):
             tab_best_solution_value = []
             tab_current_solution_fitness = []
             tab_best_neighbour_fitness = []
-            memory_solution = []
         else:
             list_transfo=None
 
@@ -421,10 +414,10 @@ class LocalSearch(Solution):
 
         while time.time() - begin < time_limit and iter_without_improvement < iter_max:
 
-            best_neighbour = self.best_in_neighbourhood(current_solution, current_coverage, n_neighbours, p11=1./3, p22=1./3, p21=1./3, list_transfo=list_transfo)
+            best_neighbour = self.best_in_neighbourhood(current_solution, current_coverage, n_neighbours, p11=0.9, p22=.1, p21=0.0, list_transfo=list_transfo)
             n_iter += 1
 
-            if best_neighbour[2] <= current_fitness:
+            if best_neighbour[2] < current_fitness:
                 iter_without_improvement = 0
                 current_solution, current_coverage, current_fitness = best_neighbour
         
@@ -467,15 +460,15 @@ class LocalSearch(Solution):
                     vec[0] += 1
                 elif e[0] == 22:
                     vec[1] += 1
-                elif e[0] == 12:
+                elif e[0] == 21:
                     vec[2] += 1
                 tab_transfos[:,i] = vec
             ax2.plot(range(len(list_transfo)), tab_transfos[0,:], c="orange", label="exchange 1-1")
             ax2.plot(range(len(list_transfo)), tab_transfos[1,:], c="green", label="exchange 2-2")
             ax2.plot(range(len(list_transfo)), tab_transfos[2,:], c="blue", label="exchange 1-2")
             ax2.set_xlabel("Number of transformations applied")
-            ax2.set_ylabel("Quantity of application of transformations")
-            ax2.set_title("Local Search : Répartition des transformations de voisinage acceptées")
+            ax2.set_ylabel("Aggregations of accepted transformations")
+            ax2.set_title("Local Search : Count of accepted transformations")
             ax2.legend()
             ax2.grid(True)
             plt.show()

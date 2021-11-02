@@ -254,19 +254,23 @@ class AlgoGenetic:
         mean_values = np.mean(np.array(solutions_values), axis=1)
         iterations = np.arange(0, len(min_values))
 
-        plt.figure("Population's values per iteration")
-        plt.step(iterations, min_values, label="Best")
-        plt.step(iterations, max_values, label="Worst")
-        plt.step(iterations, mean_values, label="Mean")
-        plt.xlabel("Iteration")
-        plt.ylabel("Value")
-        plt.legend()
-        plt.show()
+
+        if show_final_solution:
+            plt.figure("Population's values per iteration")
+            plt.step(iterations, min_values, label="Best")
+            plt.step(iterations, max_values, label="Worst")
+            plt.step(iterations, mean_values, label="Mean")
+            plt.xlabel("Iteration")
+            plt.ylabel("Value")
+            plt.legend()
+            plt.show()
 
         best_solution_index = int(np.argmin(self.fitness_values))
 
-        print(f"\nBest Solution value : {self.fitness_values[best_solution_index]}")
+        self.value = self.population[best_solution_index].value()
+        print(f"\nBest Solution value : {self.value}")
         if show_final_solution:
             self.population[best_solution_index].display(self.instance)
+        
 
         return self.fitness_values[best_solution_index]
