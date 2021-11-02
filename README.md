@@ -41,4 +41,16 @@ python main.py -m genetic -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 1
 - To test the Local Search Method, you can run 
 
 ```bash
-python main.py -m localsearch -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 15 -neighb 40 -t 400 --stats```
+python main.py -m localsearch -d data/captANOR150_7_4.dat -rcom 2 -rcapt 1 -k 1 -i 15 -neighb 40 -t 400 --stats
+```
+
+## Stucture of the code
+
+The project is based on several Python Classes and associated files, each having a specific use :
+- `instance_class.py` reads data files and stores the instance-relative information :
+- `solution_class.py` contains `Solution`, the basic class for solution, with only main methods and attributes. Then, each specific resolution method is a child of this class ;
+- `chromosome_class.py` and `genetic_class.py` contains objects relative to the **Evolutionary Algorithm** method ;
+- `solution_class.py` also contains all classes relative to the **Local Search** Method :
+- `milp_class.py` contains the Class used for the **MILP** computing the bounds.
+
+
