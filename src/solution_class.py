@@ -326,10 +326,6 @@ class LocalSearch(Solution):
         self.delete_capt(solution, coverage_vect, v_out2)
         self.add_capt(solution, coverage_vect, v_in1)
 
-    def exchange12(self, solution, coverage_vect, v_out1, v_in1, v_in2):
-        self.delete_capt(solution, coverage_vect, v_out1)
-        self.add_capt(solution, coverage_vect, v_in1)
-        self.add_capt(solution, coverage_vect, v_in2)
 
     def fitness_solution(self, solution, coverage_vect, pen_capt=2, pen_connexity=3):
         #print(np.sum(solution) - 1, pen_capt * np.linalg.norm(np.maximum(0, coverage_vect), ord=1), pen_connexity * n_connex_components(self.instance.E_com, np.argwhere(solution).flatten()))
@@ -414,7 +410,7 @@ class LocalSearch(Solution):
 
         while time.time() - begin < time_limit and iter_without_improvement < iter_max:
 
-            best_neighbour = self.best_in_neighbourhood(current_solution, current_coverage, n_neighbours, p11=0.9, p22=.1, p21=0.0, list_transfo=list_transfo)
+            best_neighbour = self.best_in_neighbourhood(current_solution, current_coverage, n_neighbours, p11=.5, p22=.5, p21=0.0, list_transfo=list_transfo)
             n_iter += 1
 
             if best_neighbour[2] < current_fitness:
@@ -435,7 +431,7 @@ class LocalSearch(Solution):
                 tab_current_solution_fitness.append(current_fitness)
                 tab_best_solution_value.append(best_fitness)
 
-        #self.improve_solution(solution, coverage_vect)
+        self.improve_solution(solution, coverage_vect)
         self.set_solution(best_solution, best_coverage)
 
         if stats:

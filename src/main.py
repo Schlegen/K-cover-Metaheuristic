@@ -30,9 +30,11 @@ if __name__ == "__main__":
 
     #mode d'execution 
     parser.add_argument("--stats", action='store_true', help="Mode to get plots and stats about methods")
+    
+    #option pour lancer les benchmarks
     parser.add_argument("--optim", action='store_true', help="Mode used to compare methods")
     parser.set_defaults(stats=False)
-    parser.set_defaults(optim=True)
+    parser.set_defaults(optim=False)
     args = parser.parse_args()
 
     data_file = args.data_path
@@ -50,7 +52,8 @@ if __name__ == "__main__":
     with_float = "captANOR" in data_file
 
     start = time.time()
-
+    
+    # bornes par PLNE
     if mode == "bound":
         from milp_class import MilpApproach
 
@@ -71,6 +74,7 @@ if __name__ == "__main__":
         else:
             raise InputError("Pas d'exécutable CPLEX renseigné")
 
+    # mode génétique
     elif mode == "genetic":
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
         if optim:
@@ -78,6 +82,7 @@ if __name__ == "__main__":
             list_times = []
             launch = 0
 
+            #tant qu'il reste du temps, on relance une nouvelle mesure
             while time.time() - start < time_limit and launch < 10:
                 launch += 1
                 local_search = LocalSearch(instance)
@@ -87,7 +92,7 @@ if __name__ == "__main__":
 
                 list_values.append(sol.value)
                 list_times.append(remaining_time - (start + time_limit - time.time()))
-                
+            
             list_value = np.array(list_values)
             list_times = np.array(list_times)
             avg_val = np.mean(list_value)
@@ -118,8 +123,6 @@ if __name__ == "__main__":
                     ignore_index=True)
 
             df.to_csv(save_file, sep=";", index=False)
-
-
 
         else:
             sol = AlgoGenetic(instance, nb_initial_solutions=32, nb_max_neighbours=n_neighbours, proba_mutation=0.2)
