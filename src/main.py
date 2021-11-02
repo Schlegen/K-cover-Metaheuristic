@@ -66,7 +66,6 @@ if __name__ == "__main__":
 
             else:
                 raise InputError("Pas de fichier de score trouvé")
-                # df = pd.DataFrame(columns = ["file", "Rcapt", "Rcom", "lower_bound"])
 
             df = df.append({"file": data_file, "Rcapt": Rcapt, "Rcom": Rcom, "lower_bound": milp.relaxation_value},
                            ignore_index=True)
@@ -82,6 +81,7 @@ if __name__ == "__main__":
             list_times = []
             launch = 0
 
+            # tant qu'il reste du temps, on relance une itération
             while time.time() - start < time_limit and launch < 6:
                 launch += 1
 
@@ -94,7 +94,8 @@ if __name__ == "__main__":
 
                 list_values.append(sol.value)
                 list_times.append(remaining_time - (start + time_limit - time.time()))
-            
+
+            #stockage des valeurs
             list_value = np.array(list_values)
             list_times = np.array(list_times)
             avg_val = np.mean(list_value)
@@ -135,11 +136,12 @@ if __name__ == "__main__":
 
     elif mode == "localsearch":
         instance = Instance.from_disk(data_file, Rcapt=Rcapt, Rcom=Rcom, k=k, with_float=with_float)
-        if optim:
+        if optim: # pour le benchmark
             list_values = []
             list_times = []
             launch = 0
 
+            # tant qu'il reste du temps, on relance une itération
             while time.time() - start < time_limit and launch < 20:
                 launch += 1
                 local_search = LocalSearch(instance)
@@ -148,6 +150,7 @@ if __name__ == "__main__":
                 list_values.append(local_search.value())
                 list_times.append(remaining_time - (start + time_limit - time.time()))
 
+            # remplissage du Dataframe
             list_value = np.array(list_values)
             list_times = np.array(list_times)
             avg_val = np.mean(list_value)

@@ -161,6 +161,16 @@ class LocalSearch(Solution):
         self.list_captors = []
 
     def GenerateInitialSolution(self):
+        """heuristique gloutonne qui construit une solution
+
+        Raises:
+            ConvergenceError: erreur quand on ne peut pas trouver de solution (instance infaisable)
+
+        Returns:
+            solution, coverage: solution stoque les solution avec un vecteur de 0 ou 1, 
+                            coverage est un vecteur stockant le nombre de fois où chaque
+                            sommet est couvert
+        """        
         solution = np.zeros(self.instance.n_targets+1, dtype=np.int64)
         solution[0] = 1
 
@@ -197,6 +207,12 @@ class LocalSearch(Solution):
             matrix[coords[0], coords[1]] = val
         
     def set_solution(self, solution, coverage_vect):
+        """enregistre et stocke une solution
+
+        Args:
+            solution (np.array 1D): vecteur stockant la solution avec des 1 aux emplacements occupés
+            coverage_vect (np.array 1D): vecteur stockant le nombre de fois où chaque sommet est couvert
+        """        
         self.solution = deepcopy(solution)
         self.coverage_vect = deepcopy(coverage_vect)
         self.list_captors = []
@@ -204,6 +220,12 @@ class LocalSearch(Solution):
             self.list_captors.append(self.instance.reversed_indexes[u + 1])
 
     def improve_solution(self, solution, coverage_vect):
+        """améliore une solution en enlevant les capteurs que l'on peut enlever
+
+        Args:
+            solution (np.array 1D): vecteur stockant la solution avec des 1 aux emplacements occupés
+            coverage_vect (np.array 1D): vecteur stockant le nombre de fois où chaque sommet est couvert
+        """        
         # suppression des capteurs que l'on peut enlever (algo glouton)
         for u in np.argwhere(solution).flatten():
             if u > 0:
@@ -261,7 +283,7 @@ class LocalSearch(Solution):
 
     def is_valid(self, instance, solution_coverage=None):
         """verifie que la solution respecte bien les contraintes de l'instance
-        attention il faut s'assurer que covergae_vect est valide
+        attention il faut s'assurer que covergae_vect est valide avant l'execution
 
         Args:
             instance (Instance): instance à laquelle correspond la solution
@@ -321,17 +343,43 @@ class LocalSearch(Solution):
         self.add_capt(solution, coverage_vect, v_in1)
         self.add_capt(solution, coverage_vect, v_in2)
 
-    def exchange21(self, solution, coverage_vect, v_out1, v_out2, v_in1):
+    def exchange21(self, solution, coverage_vect, v_out1, v_out2, v_in):
+        """ transformation qui deplace deux capteurs de v_out et v_out et en place une en v_in
+            il faut s'assurer en amont que la solution possede des capteur en v_out1 et v_out2 et pas en v_in
+
+        Args:
+            solution (np.array): vecteur de taille n_targets+1 avec des 1 aux emplacements des capteurs
+            coverage_vect (np.array): vecteur de taille n_targets+1 stockant le nombre de capteurs captant chaque sommet
+            v_out (int): indice de l'emplacement du capteur sortant
+            v_in (int): indice de l'emplacement du capteur entrant
+
+        modifie solution et coverage_vect
+        """
         self.delete_capt(solution, coverage_vect, v_out1)
         self.delete_capt(solution, coverage_vect, v_out2)
-        self.add_capt(solution, coverage_vect, v_in1)
-
+        self.add_capt(solution, coverage_vect, v_in)
 
     def fitness_solution(self, solution, coverage_vect, pen_capt=2, pen_connexity=3):
         #print(np.sum(solution) - 1, pen_capt * np.linalg.norm(np.maximum(0, coverage_vect), ord=1), pen_connexity * n_connex_components(self.instance.E_com, np.argwhere(solution).flatten()))
         return np.sum(solution) - 1 + pen_capt * np.linalg.norm(np.maximum(0, coverage_vect), ord=1) + pen_connexity * (n_connex_components(self.instance.E_com, np.argwhere(solution).flatten()) -1)
 
     def best_in_neighbourhood(self, solution, coverage_vect, n_neighbours, p11=.5, p22=.5, p21=0, list_transfo=None):
+        """trouve le meilleur voisin
+
+        Args:
+            solution (np.array 1D): solution stoque les solution avec un vecteur de 0 ou 1,
+            coverage_vect (np.array 1D): vecteur stockant le nombre de fois où chaque
+                            sommet est couvert
+            n_neighbours (int): nombre de voisins générés par voisinage
+            p11 (float, optional): probabilité de la transition échange 1-1 dans le voisinage. Defaults to .5.
+            p22 (float, optional): probabilité de la transition échange 2-2 dans le voisinage. Defaults to .5.
+            p21 (int, optional): probabilité de la transition échange 2-1 dans le voisinage. Defaults to 0.
+            list_transfo (liste, optional): si renseigné, liste stockant les transformations. Defaults to None.
+
+        Returns:
+            solution, coverage, fitness : meilleur voisin
+        """
+
         # p12 = 1 - p11 - p21 - p12 
         # peut bugguer si on ne peut pas choisir les sommets hors et dans l'arbre
         best_fitness = np.inf
@@ -339,7 +387,7 @@ class LocalSearch(Solution):
             new_solution = deepcopy(solution)
             new_coverage = deepcopy(coverage_vect)
 
-            choice = np.random.choice(np.arange(1, 4), p=[p11, p22, p21])#, 1 - p11 - p22 - p21])
+            choice = np.random.choice(np.arange(1, 4), p=[p11, p22, p21])
 
             if choice == 1:
                 v_out = np.random.choice(np.argwhere(solution[1:]).flatten() + 1)
@@ -357,7 +405,6 @@ class LocalSearch(Solution):
                 self.exchange21(new_solution, new_coverage, v_out[0], v_out[1], v_in)
 
             new_fitness = self.fitness_solution(new_solution, new_coverage)
-            #print("neighbour_fitness", new_fitness)
             if new_fitness < best_fitness:
                 best_solution = deepcopy(new_solution)
                 best_coverage = deepcopy(new_coverage)
@@ -377,9 +424,18 @@ class LocalSearch(Solution):
         return best_solution, best_coverage, best_fitness
 
     def deteriorate_solution(self, solution, coverage_vect, n_neighbours, list_transfo=None):
+        """application de best_in_neighbourhood avec p11=p22=0 et p21=1"""
         return self.best_in_neighbourhood(solution, coverage_vect, n_neighbours, p11=0, p22=0, p21=1.0, list_transfo=list_transfo)
 
     def search(self, iter_max, time_limit, n_neighbours, stats=False):
+        """recherche locale
+
+        Args:
+            iter_max (int): nombre d'itérations autorisées sans amélioration
+            time_limit (float): limite de temps à la boucle
+            n_neighbours (int): nombre de voisins calculés à chaque visite de voisinage
+            stats (bool, optional): Booléen indiquant si on trave les graphes à la fin. Defaults to False.
+        """        
         solution, coverage_vect = self.GenerateInitialSolution() # solution realisable
         self.improve_solution(solution, coverage_vect)
         n_iter = 0
