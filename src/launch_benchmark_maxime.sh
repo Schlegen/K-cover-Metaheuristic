@@ -1,6 +1,6 @@
 #!/bin/bash
 
-data_list=("data/grille1010_1.dat")
+data_list=("data/grille1010_2.dat" "data/grille2020_2.dat" "data/grille3030_2.dat")
 #("data/grille1010_1.dat" "data/grille1010_2.dat" "data/grille1515_1.dat" "data/grille1515_2.dat" "data/grille2020_1.dat" "data/grille2020_2.dat" "data/grille2525_1.dat" "data/grille2525_2.dat" "data/grille3030_1.dat" "data/grille3030_2.dat" "data/grille33_toy.dat" "data/grille4040_1.dat" "data/grille4040_2.dat" "data/grille44_toy.dat" "data/captANOR150_7_4.dat")
 
 for file in ${data_list[@]};
