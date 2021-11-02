@@ -8,7 +8,8 @@ import time
 
 
 class AlgoGenetic:
-    def __init__(self, instance, nb_initial_solutions, nb_max_neighbours=8, proba_mutation=0.2):
+    def __init__(self, instance, nb_initial_solutions, nb_max_neighbours=8,
+                 proba_mutation=0.2, size_tabou=6, nb_iter_tabou=12):
         """Class for Evolutionary Algorithm Method
         Args:
             instance (Instance) : instance we want to optimize
@@ -29,6 +30,8 @@ class AlgoGenetic:
 
         self.nb_max_neighbours = nb_max_neighbours  # Maximum size of neighborhood for mutation step
         self.proba_mutation = proba_mutation  # Probability for a chromosome to be muted at each iteration
+        self.size_tabou = size_tabou  # Size of the tabou list for the mutation step
+        self.nb_iter_tabou = nb_iter_tabou  # Nb of iterations for the tabou search during the mutation step
 
     def init_population(self, n):
         for k in range(n):
@@ -72,20 +75,6 @@ class AlgoGenetic:
             while selected_2 == selected_1:
                 selected_2 = self.roulette_wheel_selection()
             pairs.append((selected_1, selected_2))
-
-            # M1
-            # selected_1 = self.roulette_wheel_selection()
-            # while selected_1 in selected_chromosomes:
-            #     selected_1 = self.roulette_wheel_selection()
-            # selected_chromosomes.append(selected_1)
-            #
-            # selected_2 = self.roulette_wheel_selection()
-            # while selected_2 in selected_chromosomes:
-            #     selected_2 = self.roulette_wheel_selection()
-            # selected_chromosomes.append(selected_2)
-            #
-            # pairs.append((selected_1, selected_2))
-
         return pairs
 
     # crossover operator
@@ -148,12 +137,14 @@ class AlgoGenetic:
             if r < self.proba_mutation:
                 if r < self.proba_mutation / 2:
                     # 1st Tabou : Neighborhood : we switch the state of 1 target (0 --> 1 or 1--> 0)
-                    solution_binary, value, pen = self.children[i].tabu_search(size=6, max_iter=16,
+                    solution_binary, value, pen = self.children[i].tabu_search(size=self.size_tabou,
+                                                                               max_iter=self.nb_iter_tabou,
                                                                                nb_neighbours=self.nb_max_neighbours)
                 else:
                     # 2nd Tabou : Neighborhood : we switch the state of 2 or 3 targets
                     # (select 2 captors + 1 without captor and try permutations)
-                    solution_binary, value, pen = self.children[i].tabu_search_2(size=6, max_iter=12,
+                    solution_binary, value, pen = self.children[i].tabu_search_2(size=self.size_tabou,
+                                                                                 max_iter=self.nb_iter_tabou,
                                                                                  nb_neighbours=self.nb_max_neighbours)
 
                 self.children[i].captors_binary = deepcopy(solution_binary)
@@ -172,7 +163,8 @@ class AlgoGenetic:
         solutions_values = list()
         start = time.time()
         iteration = 0
-        while iteration < nb_iter and time.time() - start < time_limit:
+        mean_std = 1
+        while iteration < nb_iter and time.time() - start < time_limit and mean_std > 0.05:
             # Init fitness values
             self.fitness_values = list()
             self.cumulative_fitness_values = list()
@@ -191,6 +183,7 @@ class AlgoGenetic:
             # Roulette wheel selection
             pairs = self.pair_selection()
 
+            st = time.time()
             # Crossover step
             self.disk_crossover(pairs)
             for i in range(len(self.children)):
@@ -198,6 +191,8 @@ class AlgoGenetic:
                 if not self.children[i].is_valid(self.instance):
                     # self.children[i].reparation_heuristic(self.instance)
                     self.children[i].penalization = self.children[i].penalize_infeasibility()
+            en = time.time()
+            print(f"Crossover : {round(en - st, 3)} seconds")
 
             # Mutation step
             st = time.time()
@@ -218,6 +213,7 @@ class AlgoGenetic:
             self.children = list()
 
             iteration += 1
+            mean_std = self.compute_diversity_population()
 
         self.population = deepcopy(self.init_fitness_value(self.population))
         values = [self.population[i].nb_captors for i in range(len(self.population))]
@@ -269,4 +265,4 @@ class AlgoGenetic:
         if show_final_solution:
             self.population[best_solution_index].display(self.instance)
 
-        return self.fitness_values[best_solution_index]
+        return self.population[best_solution_index].value()
