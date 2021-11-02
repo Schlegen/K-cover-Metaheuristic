@@ -78,7 +78,7 @@ if __name__ == "__main__":
             list_times = []
             launch = 0
 
-            while time.time() - start < time_limit and launch < 10:
+            while time.time() - start < time_limit and launch < 6:
                 launch += 1
 
                 remaining_time = start + time_limit - time.time()
