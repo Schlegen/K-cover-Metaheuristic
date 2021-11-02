@@ -1,0 +1,3 @@
+Instance;Rcapt;Rcom;k;mean CPU time genetic;min value genetic;mean value genetic;std value genetic;number of launchs localsearch;min value localsearch;mean value localsearch;std value localsearch;mean CPU time localsearch
+data/grille1010_1.dat;1.0;3.0;1.0;;;;;20;25;25.95;0.22;0.44
+data/grille1010_1.dat;1.0;2.0;1.0;;;;;14;30;31.29;0.7;0.71
