@@ -33,6 +33,8 @@ class AlgoGenetic:
         self.size_tabou = size_tabou  # Size of the tabou list for the mutation step
         self.nb_iter_tabou = nb_iter_tabou  # Nb of iterations for the tabou search during the mutation step
 
+        self.value = None  # final value
+
     def init_population(self, n):
         for k in range(n):
             solution = TrivialSolutionRandomized(self.instance)
@@ -250,7 +252,6 @@ class AlgoGenetic:
         mean_values = np.mean(np.array(solutions_values), axis=1)
         iterations = np.arange(0, len(min_values))
 
-
         if show_final_solution:
             plt.figure("Population's values per iteration")
             plt.step(iterations, min_values, label="Best")
@@ -267,6 +268,5 @@ class AlgoGenetic:
         print(f"\nBest Solution value : {self.value}")
         if show_final_solution:
             self.population[best_solution_index].display(self.instance)
-        
 
         return self.population[best_solution_index].value()
